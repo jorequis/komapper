@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     java
     `maven-publish`
-    signing
+    //signing
     kotlin("jvm")
     id("com.diffplug.spotless")version "6.22.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
@@ -62,11 +62,11 @@ configure(libraryProjects + gradlePluginProject + exampleProjects + integrationT
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(17))
-            vendor.set(JvmVendorSpec.ADOPTIUM)
+            //vendor.set(JvmVendorSpec.ADOPTIUM)
         }
     }
 
-    val jvmTargetVersion = 11
+    val jvmTargetVersion = 17
 
     tasks {
         withType<Test>().configureEach {
@@ -121,7 +121,7 @@ configure(javaProjects) {
 
 configure(libraryProjects + platformProject) {
     apply(plugin = "maven-publish")
-    apply(plugin = "signing")
+    //apply(plugin = "signing")
 
     val component = if (this == platformProject) {
         apply(plugin = "java-platform")
@@ -162,7 +162,7 @@ configure(libraryProjects + platformProject) {
             }
         }
     }
-
+/*
     signing {
         val signingKey: String? by project
         val signingPassword: String? by project
@@ -171,6 +171,7 @@ configure(libraryProjects + platformProject) {
         sign(publishing.publications)
         isRequired = isReleaseVersion
     }
+*/
 }
 
 rootProject.apply {
@@ -216,4 +217,8 @@ rootProject.apply {
             dependsOn(replaceVersion)
         }
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }

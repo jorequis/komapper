@@ -15,15 +15,7 @@ class FilterScopeSupport<F : FilterScope<F>>(
     private val constructFilterScope: (FilterScopeSupport<F>) -> F,
     private val deque: Deque<MutableList<Criterion>> = LinkedList(),
     private val criteria: MutableList<Criterion> = mutableListOf(),
-) : FilterScope<F> {
-
-    fun toList(): List<Criterion> {
-        return criteria.toList()
-    }
-
-    internal fun add(criterion: Criterion) {
-        criteria.add(criterion)
-    }
+) : FilterScope<F>, ColumnFilterScopeSupport<F>(constructFilterScope as ((ColumnFilterScope<F>) -> F), deque, criteria) {
 
     private fun <T : Any, S : Any> add(
         operator: (Operand, Operand) -> Criterion,
