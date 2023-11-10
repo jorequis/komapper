@@ -47,7 +47,7 @@ class MariaDbR2dbcDataTypeProvider(next: R2dbcDataTypeProvider) :
             R2dbcLocalTimeType("time"),
             R2dbcLongType("bigint"),
             R2dbcShortType("smallint"),
-            R2dbcStringType("varchar(500)"),
+            R2dbcStringType("varchar({0})"),
             R2dbcUByteType("smallint"),
             R2dbcUIntType("bigint"),
             R2dbcUShortType("integer"),

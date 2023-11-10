@@ -20,7 +20,7 @@ interface DataOperator {
      * @param klass the class corresponding the data type
      * @return the data type name
      */
-    fun getDataTypeName(klass: KClass<*>): String
+    fun getDataTypeName(klass: KClass<*>, options: List<Any>): String
 }
 
 object DryRunDataOperator : DataOperator {
@@ -38,7 +38,7 @@ object DryRunDataOperator : DataOperator {
         }
     }
 
-    override fun getDataTypeName(klass: KClass<*>): String {
+    override fun getDataTypeName(klass: KClass<*>, options: List<Any>): String {
         throw UnsupportedOperationException()
     }
 }

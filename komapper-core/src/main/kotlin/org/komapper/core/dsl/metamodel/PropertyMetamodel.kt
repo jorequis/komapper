@@ -12,6 +12,7 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
     val getter: (ENTITY) -> EXTERIOR?
     val setter: (ENTITY, EXTERIOR) -> ENTITY
     val nullable: Boolean
+    val options: List<Any>
 
     fun toValue(entity: ENTITY): Value<INTERIOR> {
         val exterior = getter(entity)
@@ -24,6 +25,7 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
 class PropertyMetamodelImpl<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any>(
     override val owner: EntityMetamodel<ENTITY, *, *>,
     private val descriptor: PropertyDescriptor<ENTITY, EXTERIOR, INTERIOR>,
+    override val options: List<Any> = emptyList()
 ) : PropertyMetamodel<ENTITY, EXTERIOR, INTERIOR> {
     override val exteriorClass: KClass<EXTERIOR> get() = descriptor.exteriorClass
     override val interiorClass: KClass<INTERIOR> get() = descriptor.interiorClass
@@ -53,6 +55,7 @@ class PropertyMetamodelStub<ENTITY : Any, EXTERIOR : Any> :
     override val wrap: (EXTERIOR) -> EXTERIOR get() = fail()
     override val unwrap: (EXTERIOR) -> EXTERIOR get() = fail()
     override val nullable: Boolean get() = fail()
+    override val options: List<Any> get() = fail()
 
     private fun fail(): Nothing {
         error("Fix google/ksp compile errors.")

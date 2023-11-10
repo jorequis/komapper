@@ -67,7 +67,7 @@ abstract class AbstractSchemaStatementBuilder(
     }
 
     protected open fun resolveDataTypeName(property: PropertyMetamodel<*, *, *>): String {
-        return dialect.getDataTypeName(property.interiorClass)
+        return dialect.getDataTypeName(property.interiorClass, property.options)
     }
 
     protected open fun resolveIdentity(property: PropertyMetamodel<*, *, *>): String {
