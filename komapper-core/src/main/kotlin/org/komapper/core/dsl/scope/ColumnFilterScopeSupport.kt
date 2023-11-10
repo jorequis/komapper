@@ -7,6 +7,7 @@ import org.komapper.core.dsl.expression.Operand
 import org.komapper.core.dsl.expression.SqlBuilderScope
 import org.komapper.core.dsl.expression.SubqueryExpression
 import org.komapper.core.dsl.metamodel.Column
+import org.komapper.core.dsl.metamodel.ColumnPair
 import org.komapper.core.dsl.operator.CriteriaContext
 import java.util.Deque
 import java.util.LinkedList
@@ -57,189 +58,189 @@ open class ColumnFilterScopeSupport<F : ColumnFilterScope<F>>(
         criteria.add(Criterion.NotLike(Operand.Column(left.metamodel), Operand.Escape(left.metamodel, right)))
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.eq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.eq(operand: Column<T, S, *>) {
         add(Criterion::Eq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.eq1(operand: T?) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.eq(operand: T?) {
         if (operand == null) return
         add(Criterion::Eq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> T?.eq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> T?.eq(operand: Column<T, S, *>) {
         if (this == null) return
         add(Criterion::Eq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.notEq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.notEq(operand: Column<T, S, *>) {
         add(Criterion::NotEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.notEq1(operand: T?) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.notEq(operand: T?) {
         if (operand == null) return
         add(Criterion::NotEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> T?.notEq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> T?.notEq(operand: Column<T, S, *>) {
         if (this == null) return
         add(Criterion::NotEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.less1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.less(operand: Column<T, S, *>) {
         add(Criterion::Less, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.less1(operand: T?) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.less(operand: T?) {
         if (operand == null) return
         add(Criterion::Less, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> T?.less1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> T?.less(operand: Column<T, S, *>) {
         if (this == null) return
         add(Criterion::Less, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.lessEq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.lessEq(operand: Column<T, S, *>) {
         add(Criterion::LessEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.lessEq1(operand: T?) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.lessEq(operand: T?) {
         if (operand == null) return
         add(Criterion::LessEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> T?.lessEq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> T?.lessEq(operand: Column<T, S, *>) {
         if (this == null) return
         add(Criterion::LessEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.greater1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.greater(operand: Column<T, S, *>) {
         add(Criterion::Greater, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.greater1(operand: T?) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.greater(operand: T?) {
         if (operand == null) return
         add(Criterion::Greater, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> T?.greater1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> T?.greater(operand: Column<T, S, *>) {
         if (this == null) return
         add(Criterion::Greater, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.greaterEq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.greaterEq(operand: Column<T, S, *>) {
         add(Criterion::GreaterEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.greaterEq1(operand: T?) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.greaterEq(operand: T?) {
         if (operand == null) return
         add(Criterion::GreaterEq, this, operand)
     }
 
-    override infix fun <T : Any, S : Any> T?.greaterEq1(operand: Column<T, S, *>) {
+    override infix fun <T : Any, S : Any> T?.greaterEq(operand: Column<T, S, *>) {
         if (this == null) return
         add(Criterion::GreaterEq, this, operand)
     }
 
-    override fun <T : Any, S : Any> Column<T, S, *>.isNull1() {
+    override fun <T : Any, S : Any> Column<T, S, *>.isNull() {
         val left = Operand.Column(this.metamodel)
         add(Criterion.IsNull(left))
     }
 
-    override fun <T : Any, S : Any> Column<T, S, *>.isNotNull1() {
+    override fun <T : Any, S : Any> Column<T, S, *>.isNotNull() {
         val left = Operand.Column(this.metamodel)
         add(Criterion.IsNotNull(left))
     }
 
-    override infix fun <T : Any, S : CharSequence> Column<T, S, *>.like1(operand: CharSequence?) {
+    override infix fun <T : Any, S : CharSequence> Column<T, S, *>.like(operand: CharSequence?) {
         if (operand == null) return
         addLikeOperator(this, text(operand))
     }
 
-    override infix fun <T : Any, S : CharSequence> Column<T, S, *>.notLike1(operand: CharSequence?) {
+    override infix fun <T : Any, S : CharSequence> Column<T, S, *>.notLike(operand: CharSequence?) {
         if (operand == null) return
         addNotLikeOperator(this, text(operand))
     }
 
-    override fun <T : Any, S : CharSequence> Column<T, S, *>.startsWith1(operand: CharSequence?) {
+    override fun <T : Any, S : CharSequence> Column<T, S, *>.startsWith(operand: CharSequence?) {
         if (operand == null) return
         addLikeOperator(this, operand.asPrefix())
     }
 
-    override fun <T : Any, S : CharSequence> Column<T, S, *>.notStartsWith1(operand: CharSequence?) {
+    override fun <T : Any, S : CharSequence> Column<T, S, *>.notStartsWith(operand: CharSequence?) {
         if (operand == null) return
         addNotLikeOperator(this, operand.asPrefix())
     }
 
-    override fun <T : Any, S : CharSequence> Column<T, S, *>.contains1(operand: CharSequence?) {
+    override fun <T : Any, S : CharSequence> Column<T, S, *>.contains(operand: CharSequence?) {
         if (operand == null) return
         addLikeOperator(this, operand.asInfix())
     }
 
-    override fun <T : Any, S : CharSequence> Column<T, S, *>.notContains1(operand: CharSequence?) {
+    override fun <T : Any, S : CharSequence> Column<T, S, *>.notContains(operand: CharSequence?) {
         if (operand == null) return
         addNotLikeOperator(this, operand.asInfix())
     }
 
-    override fun <T : Any, S : CharSequence> Column<T, S, *>.endsWith1(operand: CharSequence?) {
+    override fun <T : Any, S : CharSequence> Column<T, S, *>.endsWith(operand: CharSequence?) {
         if (operand == null) return
         addLikeOperator(this, operand.asSuffix())
     }
 
-    override fun <T : Any, S : CharSequence> Column<T, S, *>.notEndsWith1(operand: CharSequence?) {
+    override fun <T : Any, S : CharSequence> Column<T, S, *>.notEndsWith(operand: CharSequence?) {
         if (operand == null) return
         addNotLikeOperator(this, operand.asSuffix())
     }
 
-    override infix fun <T : Comparable<T>, S : Any> Column<T, S, *>.between1(range: ClosedRange<T>) {
+    override infix fun <T : Comparable<T>, S : Any> Column<T, S, *>.between(range: ClosedRange<T>) {
         val left = Operand.Column(this.metamodel)
         val right = Operand.Argument(this.metamodel, range.start) to Operand.Argument(this.metamodel, range.endInclusive)
         add(Criterion.Between(left, right))
     }
 
-    override infix fun <T : Comparable<T>, S : Any> Column<T, S, *>.notBetween1(range: ClosedRange<T>) {
+    override infix fun <T : Comparable<T>, S : Any> Column<T, S, *>.notBetween(range: ClosedRange<T>) {
         val left = Operand.Column(this.metamodel)
         val right = Operand.Argument(this.metamodel, range.start) to Operand.Argument(this.metamodel, range.endInclusive)
         add(Criterion.NotBetween(left, right))
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.inList1(values: List<T?>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.inList(values: List<T?>) {
         val o1 = Operand.Column(this.metamodel)
         val o2 = values.map { Operand.Argument(this.metamodel, it) }
         add(Criterion.InList(o1, o2))
     }
 
-    override fun <T : Any, S : Any> Column<T, S, *>.inList1(subquery: SubqueryExpression<T?>) {
+    override fun <T : Any, S : Any> Column<T, S, *>.inList(subquery: SubqueryExpression<T?>) {
         val left = Operand.Column(this.metamodel)
         val right = Operand.Subquery(subquery)
         add(Criterion.InSubQuery(left, right))
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.inList1(block: () -> SubqueryExpression<T?>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.inList(block: () -> SubqueryExpression<T?>) {
         val left = Operand.Column(this.metamodel)
         val right = Operand.Subquery(block())
         add(Criterion.InSubQuery(left, right))
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.notInList1(values: List<T?>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.notInList(values: List<T?>) {
         val o1 = Operand.Column(this.metamodel)
         val o2 = values.map { Operand.Argument(this.metamodel, it) }
         add(Criterion.NotInList(o1, o2))
     }
 
-    override fun <T : Any, S : Any> Column<T, S, *>.notInList1(subquery: SubqueryExpression<T?>) {
+    override fun <T : Any, S : Any> Column<T, S, *>.notInList(subquery: SubqueryExpression<T?>) {
         val left = Operand.Column(this.metamodel)
         val right = Operand.Subquery(subquery)
         add(Criterion.NotInSubQuery(left, right))
     }
 
-    override infix fun <T : Any, S : Any> Column<T, S, *>.notInList1(block: () -> SubqueryExpression<T?>) {
+    override infix fun <T : Any, S : Any> Column<T, S, *>.notInList(block: () -> SubqueryExpression<T?>) {
         val left = Operand.Column(this.metamodel)
         val right = Operand.Subquery(block())
         add(Criterion.NotInSubQuery(left, right))
     }
 
-    override infix fun <A : Any, B : Any> Pair<Column<A, *, *>, Column<B, *, *>>.inList21(values: List<Pair<A?, B?>>) {
+    override infix fun <A : Any, B : Any> ColumnPair<A, B>.inList2(values: List<Pair<A?, B?>>) {
         val left = Operand.Column(this.first.metamodel) to Operand.Column(this.second.metamodel)
         val right = values.map {
             Operand.Argument(this.first.metamodel, it.first) to Operand.Argument(
@@ -250,19 +251,19 @@ open class ColumnFilterScopeSupport<F : ColumnFilterScope<F>>(
         add(Criterion.InList2(left, right))
     }
 
-    override fun <A : Any, B : Any> Pair<Column<A, *, *>, Column<B, *, *>>.inList21(subquery: SubqueryExpression<Pair<A?, B?>>) {
+    override fun <A : Any, B : Any> ColumnPair<A, B>.inList2(subquery: SubqueryExpression<Pair<A?, B?>>) {
         val left = Operand.Column(this.first.metamodel) to Operand.Column(this.second.metamodel)
         val right = Operand.Subquery(subquery)
         add(Criterion.InSubQuery2(left, right))
     }
 
-    override infix fun <A : Any, B : Any> Pair<Column<A, *, *>, Column<B, *, *>>.inList21(block: () -> SubqueryExpression<Pair<A?, B?>>) {
+    override infix fun <A : Any, B : Any> ColumnPair<A, B>.inList2(block: () -> SubqueryExpression<Pair<A?, B?>>) {
         val left = Operand.Column(this.first.metamodel) to Operand.Column(this.second.metamodel)
         val right = Operand.Subquery(block())
         add(Criterion.InSubQuery2(left, right))
     }
 
-    override infix fun <A : Any, B : Any> Pair<Column<A, *, *>, Column<B, *, *>>.notInList21(values: List<Pair<A?, B?>>) {
+    override infix fun <A : Any, B : Any> ColumnPair<A, B>.notInList2(values: List<Pair<A?, B?>>) {
         val left = Operand.Column(this.first.metamodel) to Operand.Column(this.second.metamodel)
         val right = values.map {
             Operand.Argument(this.first.metamodel, it.first) to Operand.Argument(
@@ -273,13 +274,13 @@ open class ColumnFilterScopeSupport<F : ColumnFilterScope<F>>(
         add(Criterion.NotInList2(left, right))
     }
 
-    override fun <A : Any, B : Any> Pair<Column<A, *, *>, Column<B, *, *>>.notInList21(subquery: SubqueryExpression<Pair<A?, B?>>) {
+    override fun <A : Any, B : Any> ColumnPair<A, B>.notInList2(subquery: SubqueryExpression<Pair<A?, B?>>) {
         val left = Operand.Column(this.first.metamodel) to Operand.Column(this.second.metamodel)
         val right = Operand.Subquery(subquery)
         add(Criterion.NotInSubQuery2(left, right))
     }
 
-    override infix fun <A : Any, B : Any> Pair<Column<A, *, *>, Column<B, *, *>>.notInList21(block: () -> SubqueryExpression<Pair<A?, B?>>) {
+    override infix fun <A : Any, B : Any> ColumnPair<A, B>.notInList2(block: () -> SubqueryExpression<Pair<A?, B?>>) {
         val left = Operand.Column(this.first.metamodel) to Operand.Column(this.second.metamodel)
         val right = Operand.Subquery(block())
         add(Criterion.NotInSubQuery2(left, right))
