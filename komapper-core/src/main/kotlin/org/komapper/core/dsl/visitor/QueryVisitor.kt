@@ -287,6 +287,12 @@ interface QueryVisitor<VISIT_RESULT> {
         context: SchemaContext,
     ): VISIT_RESULT
 
+    fun schemaCreateMissingPropertiesQuery(
+        metamodel: EntityMetamodel<*, *, *>,
+        columns: List<String>,
+        indexes: List<String>
+    ): VISIT_RESULT
+
     fun schemaDropQuery(
         context: SchemaContext,
     ): VISIT_RESULT

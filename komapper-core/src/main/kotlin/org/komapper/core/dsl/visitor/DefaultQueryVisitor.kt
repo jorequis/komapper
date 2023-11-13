@@ -21,37 +21,7 @@ import org.komapper.core.dsl.metamodel.EntityMetamodel
 import org.komapper.core.dsl.query.Query
 import org.komapper.core.dsl.query.Record
 import org.komapper.core.dsl.query.Row
-import org.komapper.core.dsl.runner.EntityDeleteBatchRunner
-import org.komapper.core.dsl.runner.EntityDeleteSingleReturningRunner
-import org.komapper.core.dsl.runner.EntityDeleteSingleRunner
-import org.komapper.core.dsl.runner.EntityInsertBatchRunner
-import org.komapper.core.dsl.runner.EntityInsertMultipleReturningRunner
-import org.komapper.core.dsl.runner.EntityInsertMultipleRunner
-import org.komapper.core.dsl.runner.EntityInsertSingleReturningRunner
-import org.komapper.core.dsl.runner.EntityInsertSingleRunner
-import org.komapper.core.dsl.runner.EntityUpdateBatchRunner
-import org.komapper.core.dsl.runner.EntityUpdateSingleReturningRunner
-import org.komapper.core.dsl.runner.EntityUpdateSingleRunner
-import org.komapper.core.dsl.runner.EntityUpsertBatchRunner
-import org.komapper.core.dsl.runner.EntityUpsertMultipleReturningRunner
-import org.komapper.core.dsl.runner.EntityUpsertMultipleRunner
-import org.komapper.core.dsl.runner.EntityUpsertSingleReturningRunner
-import org.komapper.core.dsl.runner.EntityUpsertSingleRunner
-import org.komapper.core.dsl.runner.RelationDeleteReturningRunner
-import org.komapper.core.dsl.runner.RelationDeleteRunner
-import org.komapper.core.dsl.runner.RelationInsertSelectRunner
-import org.komapper.core.dsl.runner.RelationInsertValuesReturningRunner
-import org.komapper.core.dsl.runner.RelationInsertValuesRunner
-import org.komapper.core.dsl.runner.RelationUpdateReturningRunner
-import org.komapper.core.dsl.runner.RelationUpdateRunner
-import org.komapper.core.dsl.runner.Runner
-import org.komapper.core.dsl.runner.SchemaCreateRunner
-import org.komapper.core.dsl.runner.SchemaDropRunner
-import org.komapper.core.dsl.runner.ScriptExecuteRunner
-import org.komapper.core.dsl.runner.SelectRunner
-import org.komapper.core.dsl.runner.SetOperationRunner
-import org.komapper.core.dsl.runner.TemplateExecuteRunner
-import org.komapper.core.dsl.runner.TemplateSelectRunner
+import org.komapper.core.dsl.runner.*
 
 @ThreadSafe
 internal object DefaultQueryVisitor : QueryVisitor<Runner> {
@@ -381,6 +351,14 @@ internal object DefaultQueryVisitor : QueryVisitor<Runner> {
         context: SchemaContext,
     ): Runner {
         return SchemaCreateRunner(context)
+    }
+
+    override fun schemaCreateMissingPropertiesQuery(
+        metamodel: EntityMetamodel<*, *, *>,
+        columns: List<String>,
+        indexes: List<String>
+    ): Runner {
+        return SchemaCreateMissingPropertiesRunner(metamodel, columns, indexes)
     }
 
     override fun schemaDropQuery(

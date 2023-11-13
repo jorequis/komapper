@@ -11,23 +11,15 @@ import org.komapper.core.dsl.context.SelectContext
 import org.komapper.core.dsl.context.TemplateExecuteContext
 import org.komapper.core.dsl.context.TemplateSelectContext
 import org.komapper.core.dsl.metamodel.EntityMetamodel
-import org.komapper.core.dsl.query.DeleteQueryBuilder
+import org.komapper.core.dsl.query.*
 import org.komapper.core.dsl.query.DeleteQueryBuilderImpl
-import org.komapper.core.dsl.query.InsertQueryBuilder
 import org.komapper.core.dsl.query.InsertQueryBuilderImpl
-import org.komapper.core.dsl.query.SchemaCreateQuery
 import org.komapper.core.dsl.query.SchemaCreateQueryImpl
-import org.komapper.core.dsl.query.SchemaDropQuery
 import org.komapper.core.dsl.query.SchemaDropQueryImpl
-import org.komapper.core.dsl.query.ScriptExecuteQuery
 import org.komapper.core.dsl.query.ScriptExecuteQueryImpl
-import org.komapper.core.dsl.query.SelectQueryBuilder
 import org.komapper.core.dsl.query.SelectQueryBuilderImpl
-import org.komapper.core.dsl.query.TemplateExecuteQuery
 import org.komapper.core.dsl.query.TemplateExecuteQueryImpl
-import org.komapper.core.dsl.query.TemplateSelectQueryBuilder
 import org.komapper.core.dsl.query.TemplateSelectQueryBuilderImpl
-import org.komapper.core.dsl.query.UpdateQueryBuilder
 import org.komapper.core.dsl.query.UpdateQueryBuilderImpl
 
 /**
@@ -141,6 +133,15 @@ object QueryDsl {
      */
     fun create(vararg metamodels: EntityMetamodel<*, *, *>): SchemaCreateQuery {
         return create(metamodels.toList())
+    }
+
+    /**
+     * Creates a query for creating missing table properties and their associated constraints.
+     *
+     * @param metamodels the entity metamodels
+     */
+    fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, columns: List<String>, indexes: List<String>): SchemaCreateMissingPropertiesQuery {
+        return SchemaCreateMissingPropertiesQueryImpl(metamodel, columns, indexes)
     }
 
     /**

@@ -22,6 +22,7 @@ import org.komapper.core.dsl.query.Query
 import org.komapper.core.dsl.query.Record
 import org.komapper.core.dsl.query.Row
 import org.komapper.core.dsl.visitor.QueryVisitor
+import org.komapper.r2dbc.dsl.runner.*
 import org.komapper.r2dbc.dsl.runner.R2dbcEntityDeleteBatchRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcEntityDeleteSingleReturningRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcEntityDeleteSingleRunner
@@ -49,7 +50,6 @@ import org.komapper.r2dbc.dsl.runner.R2dbcRelationInsertValuesRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcRelationUpdateReturningRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcRelationUpdateRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcRowTransformers
-import org.komapper.r2dbc.dsl.runner.R2dbcRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcSchemaCreateRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcSchemaDropRunner
 import org.komapper.r2dbc.dsl.runner.R2dbcScriptExecuteRunner
@@ -419,6 +419,14 @@ object R2dbcQueryVisitor : QueryVisitor<R2dbcRunner<*>> {
         context: SchemaContext,
     ): R2dbcRunner<Unit> {
         return R2dbcSchemaCreateRunner(context)
+    }
+
+    override fun schemaCreateMissingPropertiesQuery(
+        metamodel: EntityMetamodel<*, *, *>,
+        columns: List<String>,
+        indexes: List<String>
+    ): R2dbcRunner<Unit> {
+        return R2dbcSchemaCreateMissingPropertiesRunner(metamodel, columns, indexes)
     }
 
     override fun schemaDropQuery(
