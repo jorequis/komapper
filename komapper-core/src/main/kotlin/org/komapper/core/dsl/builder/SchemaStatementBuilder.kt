@@ -71,7 +71,16 @@ abstract class AbstractSchemaStatementBuilder(
                         "ON DELETE ${foreignKey.onDelete.sql} ON UPDATE ${foreignKey.onUpdate.sql}"
             )
         }
-        // TODO UNIQUE KEYS
+        metamodel.uniqueKeys().forEach { uniqueKey ->
+            buf.append(
+                ", CONSTRAINT `uk_${metamodel.tableName()}_${uniqueKey.name}` UNIQUE (${uniqueKey.columns.joinToString { it.name }})"
+            )
+        }
+        metamodel.indexes().forEach { index ->
+            buf.append(
+                ", INDEX `idx_${metamodel.tableName()}_${index.name}` (${index.columns.joinToString { it.name }}) USING ${index.type}"
+            )
+        }
         buf.append(")")
         return listOf(buf.toStatement())
     }

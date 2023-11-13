@@ -20,6 +20,7 @@ interface EntityMetamodel<ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY,
     fun idProperties(): List<PropertyMetamodel<ENTITY, *, *>>
     fun foreignKeys(): List<ForeignKey>
     fun uniqueKeys(): List<UniqueKey>
+    fun indexes(): List<Index>
     fun virtualIdProperties(): List<PropertyMetamodel<ENTITY, *, *>> = emptyList()
     fun versionProperty(): PropertyMetamodel<ENTITY, *, *>?
     fun createdAtProperty(): PropertyMetamodel<ENTITY, *, *>?
