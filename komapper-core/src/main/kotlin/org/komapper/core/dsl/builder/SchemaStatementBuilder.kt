@@ -7,6 +7,7 @@ import org.komapper.core.dsl.metamodel.EntityMetamodel
 import org.komapper.core.dsl.metamodel.IdGenerator
 import org.komapper.core.dsl.metamodel.PropertyMetamodel
 import org.komapper.core.dsl.metamodel.isAutoIncrement
+import java.time.LocalDateTime
 
 interface SchemaStatementBuilder {
     fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement>
@@ -48,7 +49,8 @@ abstract class AbstractSchemaStatementBuilder(
             val dataTypeName = resolveDataTypeName(p)
             val notNull = if (p.nullable) "" else " not null"
             val identity = resolveIdentity(p)
-            "$columnName ${dataTypeName}$identity$notNull"
+            val defaultValue = resolveDefaultValue(p)
+            "$columnName ${dataTypeName}$identity$notNull$defaultValue"
         }
         buf.append(columnDefinition)
         val primaryKeys = metamodel.idProperties() - metamodel.virtualIdProperties().toSet()
@@ -62,6 +64,14 @@ abstract class AbstractSchemaStatementBuilder(
             buf.append(pkList)
             buf.append(")")
         }
+        metamodel.foreignKeys().forEach { foreignKey ->
+            buf.append(
+                ", CONSTRAINT `fk_${metamodel.tableName()}_${foreignKey.name}_${foreignKey.referenceColumn.name}` " +
+                        "FOREIGN KEY (`${foreignKey.name}`) REFERENCES `${foreignKey.referenceColumn.metamodel.owner.tableName()}` (`${foreignKey.referenceColumn.name}`) " +
+                        "ON DELETE ${foreignKey.onDelete.sql} ON UPDATE ${foreignKey.onUpdate.sql}"
+            )
+        }
+        // TODO UNIQUE KEYS
         buf.append(")")
         return listOf(buf.toStatement())
     }
@@ -72,6 +82,15 @@ abstract class AbstractSchemaStatementBuilder(
 
     protected open fun resolveIdentity(property: PropertyMetamodel<*, *, *>): String {
         return if (property.isAutoIncrement()) " auto_increment" else ""
+    }
+
+    private fun resolveDefaultValue(property: PropertyMetamodel<*, *, *>): String {
+        return if (property.defaultValue != null) " DEFAULT ${
+            when (property.defaultValue!!::class) {
+                LocalDateTime::class, String::class -> "'${property.defaultValue}'"
+                else -> property.defaultValue.toString()
+            }
+        }" else ""
     }
 
     protected open fun createSequence(metamodel: EntityMetamodel<*, *, *>): List<Statement> {

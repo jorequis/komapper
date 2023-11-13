@@ -12,6 +12,7 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
     val getter: (ENTITY) -> EXTERIOR?
     val setter: (ENTITY, EXTERIOR) -> ENTITY
     val nullable: Boolean
+    val defaultValue: EXTERIOR?
     val options: List<Any>
 
     fun toValue(entity: ENTITY): Value<INTERIOR> {
@@ -38,6 +39,7 @@ class PropertyMetamodelImpl<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any>(
     override val wrap: (INTERIOR) -> EXTERIOR get() = descriptor.wrap
     override val unwrap: (EXTERIOR) -> INTERIOR get() = descriptor.unwrap
     override val nullable: Boolean get() = descriptor.nullable
+    override val defaultValue: EXTERIOR? get() = descriptor.defaultValue
 }
 
 @Suppress("unused")
@@ -55,6 +57,7 @@ class PropertyMetamodelStub<ENTITY : Any, EXTERIOR : Any> :
     override val wrap: (EXTERIOR) -> EXTERIOR get() = fail()
     override val unwrap: (EXTERIOR) -> EXTERIOR get() = fail()
     override val nullable: Boolean get() = fail()
+    override val defaultValue: EXTERIOR get() = fail()
     override val options: List<Any> get() = fail()
 
     private fun fail(): Nothing {
