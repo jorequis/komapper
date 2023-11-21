@@ -45,7 +45,7 @@ abstract class AbstractSchemaStatementBuilder(
         val primaryKeys = metamodel.idProperties() - metamodel.virtualIdProperties().toSet()
         if (primaryKeys.isNotEmpty()) buf.appendPrimaryKeysDefinition(metamodel = metamodel, primaryKeys = primaryKeys)
         val indexDefinitions = listOf(
-            metamodel.foreignKeys().joinToString { foreignKey -> ", ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
+            //metamodel.foreignKeys().joinToString { foreignKey -> ", ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
             metamodel.uniqueKeys().joinToString { uniqueKey -> ", ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
             metamodel.indexes().joinToString { index -> ", ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
         )
