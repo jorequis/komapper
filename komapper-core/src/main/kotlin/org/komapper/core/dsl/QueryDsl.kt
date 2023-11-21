@@ -122,8 +122,8 @@ object QueryDsl {
      *
      * @param metamodels the entity metamodels
      */
-    fun create(metamodels: List<EntityMetamodel<*, *, *>>): SchemaCreateQuery {
-        return SchemaCreateQueryImpl(SchemaContext(metamodels))
+    fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): SchemaCreateQuery {
+        return SchemaCreateQueryImpl(SchemaContext(metamodels), withForeignKeys)
     }
 
     /**
@@ -131,8 +131,8 @@ object QueryDsl {
      *
      * @param metamodels the entity metamodels
      */
-    fun create(vararg metamodels: EntityMetamodel<*, *, *>): SchemaCreateQuery {
-        return create(metamodels.toList())
+    fun create(metamodel: EntityMetamodel<*, *, *>, withForeignKeys: Boolean): SchemaCreateQuery {
+        return create(listOf(metamodel), withForeignKeys)
     }
 
     /**

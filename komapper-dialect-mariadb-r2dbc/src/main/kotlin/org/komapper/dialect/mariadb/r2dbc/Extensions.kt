@@ -15,8 +15,8 @@ suspend fun <R> R2dbcDatabase.transaction(transactionAttribute: TransactionAttri
 
 fun <R> R2dbcDatabase.transactionBlocking(transactionAttribute: TransactionAttribute = TransactionAttribute.REQUIRED, transactionProperty: TransactionProperty = EmptyTransactionProperty, block: suspend R2dbcDatabase.(CoroutineTransactionOperator) -> R) = runBlocking { transaction(transactionAttribute, transactionProperty, block) }
 
-suspend fun <ENTITY : Any> R2dbcDatabase.createTable(table: Table<ENTITY>) {
-    runQuery { QueryDsl.create(table) }
+suspend fun <ENTITY : Any> R2dbcDatabase.createTable(table: Table<ENTITY>, withForeignKeys: Boolean) {
+    runQuery { QueryDsl.create(table, withForeignKeys) }
 }
 
 suspend fun <ENTITY : Any> R2dbcDatabase.createMissingProperties(table: Table<ENTITY>) {
@@ -27,20 +27,24 @@ suspend fun <ENTITY : Any> R2dbcDatabase.createMissingProperties(table: Table<EN
 }
 
 
-suspend fun <ENTITY : Any> R2dbcDatabase.createTableOrMissingProperties(table: Table<ENTITY>) {
-    if (!existTable(table))
-        createTable(table)
+suspend fun <ENTITY : Any> R2dbcDatabase.createTableOrMissingProperties(table: Table<ENTITY>, withForeignKeys: Boolean) {
+    if (!exists(table))
+        createTable(table, withForeignKeys)
     else
         createMissingProperties(table)
 }
 
-suspend fun <ENTITY : Any> Table<ENTITY>.createIn(database: R2dbcDatabase) = database.runQuery { QueryDsl.create(this@createIn) }
+suspend fun <ENTITY : Any> Table<ENTITY>.createIn(database: R2dbcDatabase, withForeignKeys: Boolean) = database.runQuery { QueryDsl.create(this@createIn, withForeignKeys) }
 
 suspend fun <ENTITY : Any> R2dbcDatabase.selectAllFrom(table: Table<ENTITY>) = runQuery { QueryDsl.from(table) }
 
 suspend fun <ENTITY : Any, RESULT> R2dbcDatabase.selectFrom(table: Table<ENTITY>, block: SelectQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<RESULT>) = runQuery { QueryDsl.from(table).block() }
 
 suspend fun <ENTITY : Any> R2dbcDatabase.insertInto(table: Table<ENTITY>, block: InsertQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<ENTITY>) = runQuery { QueryDsl.insert(table).block() }
+
+suspend fun <ENTITY : Any> R2dbcDatabase.updateWhere(table: Table<ENTITY>, block: UpdateQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<Long>) = runQuery { QueryDsl.update(table).block() }
+
+suspend fun <ENTITY : Any> R2dbcDatabase.updateInto(table: Table<ENTITY>, block: UpdateQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<ENTITY>) = runQuery { QueryDsl.update(table).block() }
 
 fun <T : Any> SelectQueryBuilder<T, Int, Table<T>>.orderBy(column: Column<*, *, T>): EntitySelectQuery<T> = orderBy(column.metamodel)
 
@@ -50,7 +54,7 @@ private suspend fun <ENTITY : Any> R2dbcDatabase.getTableColumns(table: Table<EN
     }
 }
 
-private suspend fun <ENTITY : Any> R2dbcDatabase.existTable(table: Table<ENTITY>): Boolean {
+suspend fun <ENTITY : Any> R2dbcDatabase.exists(table: Table<ENTITY>): Boolean {
     return runQuery {
         QueryDsl.fromTemplate("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'dbtest' AND table_name = '${table.tableName}'").select { row -> row.getNotNull<Boolean>("COUNT(*)") }.single()
     }

@@ -9,9 +9,10 @@ import org.komapper.r2dbc.R2dbcExecutor
 
 internal class R2dbcSchemaCreateRunner(
     private val context: SchemaContext,
+    private val withForeignKeys: Boolean
 ) : R2dbcRunner<Unit> {
 
-    private val runner = SchemaCreateRunner(context)
+    private val runner = SchemaCreateRunner(context, withForeignKeys)
 
     override fun check(config: DatabaseConfig) {
         runner.check(config)

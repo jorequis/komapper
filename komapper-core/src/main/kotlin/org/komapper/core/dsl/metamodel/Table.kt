@@ -36,14 +36,6 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
 
     override fun convertToId(generatedKey: Long): Int? = generatedKey.toInt()
 
-    override fun createdAtAssignment(c: Clock): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
-        throw Exception("Not yet implemented: createdAtAssignment")
-    }
-
-    override fun createdAtProperty(): PropertyMetamodel<ENTITY, *, *>? {
-        throw Exception("Not yet implemented: createdAtProperty")
-    }
-
     override fun declaration(): EntityMetamodelDeclaration<Table<ENTITY>> = {}
 
     override fun disableSequenceAssignment(): Boolean {
@@ -100,20 +92,34 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
 
     override fun tableName(): String = tableName
 
+    override fun createdAtAssignment(c: Clock): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
+        return null
+        //throw Exception("Not yet implemented: createdAtAssignment")
+    }
+
+    override fun createdAtProperty(): PropertyMetamodel<ENTITY, *, *>? {
+        return null
+        //throw Exception("Not yet implemented: createdAtProperty")
+    }
+
     override fun updatedAtAssignment(c: Clock): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
-        throw Exception("Not yet implemented: updatedAtAssignment")
+        return null
+        //throw Exception("Not yet implemented: updatedAtAssignment")
     }
 
     override fun updatedAtProperty(): PropertyMetamodel<ENTITY, *, *>? {
-        throw Exception("Not yet implemented: updatedAtProperty")
+        return null
+        //throw Exception("Not yet implemented: updatedAtProperty")
     }
 
     override fun versionAssignment(): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
-        throw Exception("Not yet implemented: versionAssignment")
+        return null
+        //throw Exception("Not yet implemented: versionAssignment")
     }
 
     override fun versionProperty(): PropertyMetamodel<ENTITY, *, *>? {
-        throw Exception("Not yet implemented: versionProperty")
+        return null
+        //throw Exception("Not yet implemented: versionProperty")
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -204,6 +210,6 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     fun shouldCreateMissingProperties(columns: List<String>, indexes: List<String>): Boolean {
         val hasNewColumns = columns.size != this.properties().size
         val hasNewIndexes = indexes.size != (this.foreignKeys().size + this.uniqueKeys().size + this.indexes().size)
-        return hasNewColumns && hasNewIndexes
+        return hasNewColumns || hasNewIndexes
     }
 }

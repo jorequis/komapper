@@ -417,8 +417,9 @@ object R2dbcQueryVisitor : QueryVisitor<R2dbcRunner<*>> {
 
     override fun schemaCreateQuery(
         context: SchemaContext,
+        withForeignKeys: Boolean
     ): R2dbcRunner<Unit> {
-        return R2dbcSchemaCreateRunner(context)
+        return R2dbcSchemaCreateRunner(context, withForeignKeys)
     }
 
     override fun schemaCreateMissingPropertiesQuery(

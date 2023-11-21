@@ -222,3 +222,20 @@ rootProject.apply {
 kotlin {
     jvmToolchain(17)
 }
+
+task("PublishAllLocal") {
+    dependsOn(
+        ":komapper-platform:publishMavenPublicationToMavenLocal",
+        ":komapper-core:publishMavenPublicationToMavenLocal",
+        ":komapper-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-starter-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-tx-core:publishMavenPublicationToMavenLocal",
+        ":komapper-tx-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-template:publishMavenPublicationToMavenLocal",
+        ":komapper-slf4j:publishMavenPublicationToMavenLocal",
+        ":komapper-annotation:publishMavenPublicationToMavenLocal",
+        ":komapper-datetime-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-dialect-mariadb:publishMavenPublicationToMavenLocal",
+        ":komapper-dialect-mariadb-r2dbc:publishMavenPublicationToMavenLocal"
+    )
+}

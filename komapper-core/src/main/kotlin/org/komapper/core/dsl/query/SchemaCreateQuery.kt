@@ -20,6 +20,7 @@ interface SchemaCreateQuery : Query<Unit> {
 
 internal data class SchemaCreateQueryImpl(
     private val context: SchemaContext,
+    private val withForeignKeys: Boolean
 ) : SchemaCreateQuery {
 
     override fun options(configure: (SchemaOptions) -> SchemaOptions): SchemaCreateQuery {
@@ -28,6 +29,6 @@ internal data class SchemaCreateQueryImpl(
     }
 
     override fun <VISIT_RESULT> accept(visitor: QueryVisitor<VISIT_RESULT>): VISIT_RESULT {
-        return visitor.schemaCreateQuery(context)
+        return visitor.schemaCreateQuery(context, withForeignKeys)
     }
 }

@@ -285,6 +285,7 @@ interface QueryVisitor<VISIT_RESULT> {
 
     fun schemaCreateQuery(
         context: SchemaContext,
+        withForeignKeys: Boolean
     ): VISIT_RESULT
 
     fun schemaCreateMissingPropertiesQuery(

@@ -349,8 +349,9 @@ internal object DefaultQueryVisitor : QueryVisitor<Runner> {
 
     override fun schemaCreateQuery(
         context: SchemaContext,
+        withForeignKeys: Boolean
     ): Runner {
-        return SchemaCreateRunner(context)
+        return SchemaCreateRunner(context, withForeignKeys)
     }
 
     override fun schemaCreateMissingPropertiesQuery(

@@ -8,6 +8,7 @@ import org.komapper.core.dsl.context.SchemaContext
 
 class SchemaCreateRunner(
     private val context: SchemaContext,
+    private val withForeignKeys: Boolean
 ) : Runner {
 
     override fun check(config: DatabaseConfig) = Unit
@@ -19,6 +20,6 @@ class SchemaCreateRunner(
 
     fun buildStatements(config: DatabaseConfig): List<Statement> {
         val builder = config.dialect.getSchemaStatementBuilder(BuilderDialect(config))
-        return builder.create(context.metamodels)
+        return builder.create(context.metamodels, withForeignKeys)
     }
 }

@@ -7,8 +7,8 @@ import org.komapper.core.dsl.metamodel.*
 import java.time.LocalDateTime
 
 interface SchemaStatementBuilder {
-    fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement>
-    fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, columns: List<String>, indexes: List<String>): List<Statement>
+    fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): List<Statement>
+    fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement>
     fun drop(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement>
 }
 
@@ -16,10 +16,10 @@ abstract class AbstractSchemaStatementBuilder(
     protected val dialect: BuilderDialect,
 ) : SchemaStatementBuilder {
 
-    override fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement> {
+    override fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): List<Statement> {
         val statements = mutableListOf<Statement>()
         for (e in metamodels) {
-            statements.addAll(createTable(e))
+            statements.addAll(createTable(e, withForeignKeys))
             statements.addAll(createSequence(e))
         }
         return statements.filter { it.parts.isNotEmpty() }
@@ -34,7 +34,7 @@ abstract class AbstractSchemaStatementBuilder(
         return statements.filter { it.parts.isNotEmpty() }
     }
 
-    protected open fun createTable(metamodel: EntityMetamodel<*, *, *>): List<Statement> {
+    protected open fun createTable(metamodel: EntityMetamodel<*, *, *>, withForeignKeys: Boolean): List<Statement> {
         val buf = StatementBuffer()
         val tableName = metamodel.getCanonicalTableName(dialect::enquote)
         buf.append("create table ")
@@ -45,7 +45,7 @@ abstract class AbstractSchemaStatementBuilder(
         val primaryKeys = metamodel.idProperties() - metamodel.virtualIdProperties().toSet()
         if (primaryKeys.isNotEmpty()) buf.appendPrimaryKeysDefinition(metamodel = metamodel, primaryKeys = primaryKeys)
         val indexDefinitions = listOf(
-            //metamodel.foreignKeys().joinToString { foreignKey -> ", ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
+            if (withForeignKeys) metamodel.foreignKeys().joinToString { foreignKey -> ", ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" } else "",
             metamodel.uniqueKeys().joinToString { uniqueKey -> ", ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
             metamodel.indexes().joinToString { index -> ", ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
         )
@@ -54,18 +54,18 @@ abstract class AbstractSchemaStatementBuilder(
         return listOf(buf.toStatement())
     }
 
-    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, columns: List<String>, indexes: List<String>): List<Statement> {
+    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement> {
         val buf = StatementBuffer()
         val tableName = metamodel.getCanonicalTableName(dialect::enquote)
         buf.append("alter table $tableName ")
-        val columnsDefinition = metamodel.properties().filter { !columns.contains(it.name) }.joinToString { p -> "ADD COLUMN ${columnDefinition(p)}" }
+        val columnsDefinition = metamodel.properties().filter { !existingColumns.contains(it.name) }.joinToString { p -> "ADD COLUMN ${columnDefinition(p)}" }
 
         if (columnsDefinition.isNotEmpty()) buf.append("$columnsDefinition, ")
 
         val indexDefinitions = listOf(
-            metamodel.foreignKeys().filter { !indexes.contains(it.name) }.joinToString { foreignKey -> "ADD ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
-            metamodel.uniqueKeys().filter { !indexes.contains(it.name) }.joinToString { uniqueKey -> "ADD ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
-            metamodel.indexes().filter { !indexes.contains(it.name) }.joinToString { index -> "ADD ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
+            metamodel.foreignKeys().filter { !existingIndexes.contains(it.name) }.joinToString { foreignKey -> "ADD ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
+            metamodel.uniqueKeys().filter { !existingIndexes.contains(it.name) }.joinToString { uniqueKey -> "ADD ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
+            metamodel.indexes().filter { !existingIndexes.contains(it.name) }.joinToString { index -> "ADD ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
         )
         buf.append(indexDefinitions.filter { it.isNotBlank() }.joinToString())
         return listOf(buf.toStatement())
@@ -172,7 +172,7 @@ abstract class AbstractSchemaStatementBuilder(
 }
 
 object DryRunSchemaStatementBuilder : SchemaStatementBuilder {
-    override fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement> = emptyList()
-    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, columns: List<String>, indexes: List<String>): List<Statement> = emptyList()
+    override fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): List<Statement> = emptyList()
+    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement> = emptyList()
     override fun drop(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement> = emptyList()
 }
