@@ -5,7 +5,6 @@ plugins {
     `maven-publish`
     //signing
     kotlin("jvm")
-    id("com.diffplug.spotless")version "6.22.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     id("net.researchgate.release") version "3.0.2"
 }
@@ -31,23 +30,10 @@ val ktlintVersion: String by project
 
 allprojects {
     apply(plugin = "base")
-    apply(plugin = "com.diffplug.spotless")
 
     repositories {
         mavenCentral()
         maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
-    }
-
-    spotless {
-        kotlinGradle {
-            ktlint(ktlintVersion)
-        }
-    }
-
-    tasks {
-        build {
-            dependsOn(spotlessApply)
-        }
     }
 }
 
@@ -59,30 +45,9 @@ configure(libraryProjects + gradlePluginProject + exampleProjects + integrationT
         testImplementation(kotlin("test"))
     }
 
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(17))
-            //vendor.set(JvmVendorSpec.ADOPTIUM)
-        }
-    }
-
-    val jvmTargetVersion = 17
-
     tasks {
         withType<Test>().configureEach {
             useJUnitPlatform()
-        }
-
-        withType<JavaCompile>().configureEach {
-            options.release.set(jvmTargetVersion)
-        }
-
-        withType<KotlinCompile>().configureEach {
-            kotlinOptions {
-                freeCompilerArgs = freeCompilerArgs + "-Xjdk-release=$jvmTargetVersion"
-                jvmTarget = jvmTargetVersion.toString()
-                apiVersion = "1.6"
-            }
         }
     }
 }
@@ -91,31 +56,6 @@ configure(libraryProjects + gradlePluginProject) {
     java {
         withJavadocJar()
         withSourcesJar()
-    }
-}
-
-configure(kotlinProjects) {
-    spotless {
-        kotlin {
-            ktlint(ktlintVersion)
-            targetExclude("build/**")
-        }
-    }
-}
-
-configure(javaProjects) {
-    spotless {
-        java {
-            googleJavaFormat("1.13.0")
-        }
-    }
-
-    tasks {
-        javadoc {
-            (options as StandardJavadocDocletOptions).apply {
-                addStringOption("Xdoclint:none", "-quiet")
-            }
-        }
     }
 }
 
@@ -217,10 +157,6 @@ rootProject.apply {
             dependsOn(replaceVersion)
         }
     }
-}
-
-kotlin {
-    jvmToolchain(17)
 }
 
 task("PublishAllLocal") {

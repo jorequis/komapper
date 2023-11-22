@@ -167,15 +167,17 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
         return Column(name = columnName, descriptor = descriptor, metamodel = PropertyMetamodelImpl(owner = this, descriptor, options))
     }
 
-    fun bool(columnName: String, getter: (ENTITY) -> Boolean, setter: (ENTITY, Boolean) -> ENTITY) = createColumn(columnName, Boolean::class, getter, setter)
+    fun bool(columnName: String, getter: (ENTITY) -> Boolean?, setter: (ENTITY, Boolean) -> ENTITY) = createColumn(columnName, Boolean::class, getter, setter)
 
     fun integer(columnName: String, getter: (ENTITY) -> Int?, setter: (ENTITY, Int) -> ENTITY) = createColumn(columnName, Int::class, getter, setter)
 
+    fun float(columnName: String, getter: (ENTITY) -> Float?, setter: (ENTITY, Float) -> ENTITY) = createColumn(columnName, Float::class, getter, setter)
+
     fun varchar(columnName: String, length: Int, getter: (ENTITY) -> String?, setter: (ENTITY, String) -> ENTITY) = createColumn(columnName, String::class, getter, setter, listOf(length))
 
-    fun datetime(columnName: String, getter: (ENTITY) -> LocalDateTime, setter: (ENTITY, LocalDateTime) -> ENTITY) = createColumn(columnName, LocalDateTime::class, getter, setter)
+    fun datetime(columnName: String, getter: (ENTITY) -> LocalDateTime?, setter: (ENTITY, LocalDateTime) -> ENTITY) = createColumn(columnName, LocalDateTime::class, getter, setter)
 
-    fun <ENUM_TYPE : Enum<ENUM_TYPE>> enum(columnName: String, kClass: KClass<ENUM_TYPE>, getter: (ENTITY) -> ENUM_TYPE?, setter: (ENTITY, ENUM_TYPE) -> ENTITY): Column<ENUM_TYPE, Int, ENTITY> {
+    fun <ENUM_TYPE : Enum<ENUM_TYPE>> enumeration(columnName: String, kClass: KClass<ENUM_TYPE>, getter: (ENTITY) -> ENUM_TYPE?, setter: (ENTITY, ENUM_TYPE) -> ENTITY): Column<ENUM_TYPE, Int, ENTITY> {
         val descriptor = PropertyDescriptor(kClass, Int::class, columnName, columnName, alwaysQuote = false, masking = false, getter, setter, { wrapEnum(ordinal = it, kClass = kClass) }, ::unwrapEnum, nullable = false, defaultValue = null)
         return Column(name = columnName, descriptor = descriptor, metamodel = PropertyMetamodelImpl(owner = this, descriptor))
     }
