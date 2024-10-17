@@ -12,7 +12,7 @@ class JdbcH2MappingTest(private val db: JdbcDatabase) {
     @Test
     fun test() {
         db.runQuery {
-            QueryDsl.create(Meta.jdbch2Mapping)
+            QueryDsl.create(listOf(Meta.jdbch2Mapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.jdbch2Mapping)

@@ -93,7 +93,7 @@ class DefaultJdbcDataOperator(private val dialect: JdbcDialect, private val data
         }
     }
 
-    override fun <T : Any> getDataTypeName(type: KType): String {
+    override fun <T : Any> getDataTypeName(type: KType, options: List<Any>): String {
         val dataType = getDataType<T>(type)
         return dataType.name
     }

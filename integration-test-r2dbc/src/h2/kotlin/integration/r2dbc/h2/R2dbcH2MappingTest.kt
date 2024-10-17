@@ -14,7 +14,7 @@ class R2dbcH2MappingTest(private val db: R2dbcDatabase) {
     @Test
     fun test(info: TestInfo) = inTransaction(db, info) {
         db.runQuery {
-            QueryDsl.create(Meta.r2dbch2Mapping)
+            QueryDsl.create(listOf(Meta.r2dbch2Mapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.r2dbch2Mapping)

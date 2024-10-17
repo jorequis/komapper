@@ -43,7 +43,7 @@ suspend fun main() {
     db.withTransaction {
         // create a schema
         db.runQuery {
-            QueryDsl.create(a)
+            QueryDsl.create(listOf(a), false)
         }
 
         // CREATE

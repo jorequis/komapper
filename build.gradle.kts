@@ -64,15 +64,15 @@ configure(libraryProjects + gradlePluginProject + exampleProjects + integrationT
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
     }
-
+/*
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(17))
             vendor.set(JvmVendorSpec.ADOPTIUM)
         }
     }
-
-    val jvmTargetVersion = 11
+*/
+    val jvmTargetVersion = 21
 
     tasks {
         withType<Test>().configureEach {
@@ -179,6 +179,7 @@ configure(libraryProjects + platformProject) {
         }
     }
 
+/*
     signing {
         val signingKey: String? by project
         val signingPassword: String? by project
@@ -187,6 +188,7 @@ configure(libraryProjects + platformProject) {
         sign(publishing.publications)
         isRequired = isReleaseVersion
     }
+*/
 }
 
 rootProject.apply {
@@ -232,4 +234,21 @@ rootProject.apply {
             dependsOn(replaceVersion)
         }
     }
+}
+
+task("PublishAllLocal") {
+    dependsOn(
+        ":komapper-platform:publishMavenPublicationToMavenLocal",
+        ":komapper-core:publishMavenPublicationToMavenLocal",
+        ":komapper-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-starter-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-tx-core:publishMavenPublicationToMavenLocal",
+        ":komapper-tx-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-template:publishMavenPublicationToMavenLocal",
+        ":komapper-slf4j:publishMavenPublicationToMavenLocal",
+        ":komapper-annotation:publishMavenPublicationToMavenLocal",
+        ":komapper-datetime-r2dbc:publishMavenPublicationToMavenLocal",
+        ":komapper-dialect-mariadb:publishMavenPublicationToMavenLocal",
+        ":komapper-dialect-mariadb-r2dbc:publishMavenPublicationToMavenLocal"
+    )
 }

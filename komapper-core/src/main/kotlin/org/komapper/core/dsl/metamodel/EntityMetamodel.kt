@@ -23,6 +23,10 @@ interface EntityMetamodel<ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY,
          */
         const val METAMODEL_VERSION: Int = 2
     }
+    
+    fun foreignKeys(): List<ForeignKey>
+    fun uniqueKeys(): List<UniqueKey>
+    fun indexes(): List<Index>
 
     /**
      * Returns the declaration of the metamodel.
@@ -261,6 +265,19 @@ abstract class EntityMetamodelStub<ENTITY : Any, META : EntityMetamodelStub<ENTI
  * which throw an UnsupportedOperationException.
  */
 internal object EmptyMetamodel : EntityMetamodel<Nothing, Nothing, EmptyMetamodel> {
+
+    override fun foreignKeys(): List<ForeignKey>{
+        return emptyList()
+    }
+
+    override fun uniqueKeys(): List<UniqueKey>{
+        return emptyList()
+    }
+
+    override fun indexes(): List<Index> {
+        return emptyList()
+    }
+
     override fun declaration(): EntityMetamodelDeclaration<EmptyMetamodel> {
         return {}
     }

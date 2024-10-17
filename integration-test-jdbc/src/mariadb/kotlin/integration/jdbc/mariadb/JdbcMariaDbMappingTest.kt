@@ -12,7 +12,7 @@ class JdbcMariaDbMappingTest(private val db: JdbcDatabase) {
     @Test
     fun test() {
         db.runQuery {
-            QueryDsl.create(Meta.jdbcMariaDbMapping)
+            QueryDsl.create(listOf(Meta.jdbcMariaDbMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.jdbcMariaDbMapping)

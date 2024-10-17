@@ -12,7 +12,7 @@ class JdbcPostgreSqlMappingTest(private val db: JdbcDatabase) {
     @Test
     fun test() {
         db.runQuery {
-            QueryDsl.create(Meta.jdbcPostgreSqlMapping)
+            QueryDsl.create(listOf(Meta.jdbcPostgreSqlMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.jdbcPostgreSqlMapping)

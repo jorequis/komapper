@@ -124,6 +124,10 @@ internal class EntityMetamodelGenerator(
                 w.println("import ${a.targetEntity.packageName}.`${a.link.target}`")
             }
         }
+
+        w.println("import org.komapper.core.dsl.metamodel.ForeignKey")
+        w.println("import org.komapper.core.dsl.metamodel.Index")
+        w.println("import org.komapper.core.dsl.metamodel.UniqueKey")
     }
 
     private fun classDeclaration() {
@@ -155,6 +159,9 @@ internal class EntityMetamodelGenerator(
         disableSequenceAssignment()
         declaration()
         disableAutoIncrement()
+        foreignKeys()
+        uniqueKeys()
+        indexes()
 
         idGenerator()
         idProperties()
@@ -278,9 +285,10 @@ internal class EntityMetamodelGenerator(
                 }
             }
             val nullable = if (nullability == Nullability.NULLABLE) "true" else "false"
+            val defaultValue = "null"
             val propertyDescriptor =
                 "$PropertyDescriptor<$entityTypeName, $exteriorTypeName, $interiorTypeName>"
-            return "$propertyDescriptor($exteriorType, $interiorType, \"$p\", $columnName, $alwaysQuote, $masking, $updatable, $getter, $setter, $wrap, $unwrap, $nullable)"
+            return "$propertyDescriptor($exteriorType, $interiorType, \"$p\", $columnName, $alwaysQuote, $masking, $updatable, $getter, $setter, $wrap, $unwrap, $nullable, $defaultValue)"
         }
 
         w.println("    private object $EntityDescriptor {")
@@ -391,6 +399,18 @@ internal class EntityMetamodelGenerator(
 
     private fun disableAutoIncrement() {
         w.println("    override fun disableAutoIncrement(): Boolean = __disableAutoIncrement")
+    }
+
+    private fun foreignKeys() {
+        w.println("    override fun foreignKeys(): List<ForeignKey> = emptyList()")
+    }
+
+    private fun uniqueKeys() {
+        w.println("    override fun uniqueKeys(): List<UniqueKey> = emptyList()")
+    }
+
+    private fun indexes() {
+        w.println("    override fun indexes(): List<Index> = emptyList()")
     }
 
     private fun idGenerator() {

@@ -42,6 +42,8 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
      * Indicates whether the property is nullable.
      */
     val nullable: Boolean
+    val defaultValue: EXTERIOR?
+    val options: List<Any>
 
     /**
      * Indicates if the column should be updatable.
@@ -71,6 +73,7 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
 class PropertyMetamodelImpl<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any>(
     override val owner: EntityMetamodel<ENTITY, *, *>,
     private val descriptor: PropertyDescriptor<ENTITY, EXTERIOR, INTERIOR>,
+    override val options: List<Any> = emptyList()
 ) : PropertyMetamodel<ENTITY, EXTERIOR, INTERIOR> {
     override val exteriorType: KType = descriptor.exteriorType
     override val interiorType: KType = descriptor.interiorType
@@ -84,6 +87,7 @@ class PropertyMetamodelImpl<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any>(
     override val wrap: (INTERIOR) -> EXTERIOR get() = descriptor.wrap
     override val unwrap: (EXTERIOR) -> INTERIOR get() = descriptor.unwrap
     override val nullable: Boolean get() = descriptor.nullable
+    override val defaultValue: EXTERIOR? get() = descriptor.defaultValue
 }
 
 @Suppress("unused")
@@ -102,6 +106,8 @@ class PropertyMetamodelStub<ENTITY : Any, EXTERIOR : Any> :
     override val wrap: (EXTERIOR) -> EXTERIOR get() = fail()
     override val unwrap: (EXTERIOR) -> EXTERIOR get() = fail()
     override val nullable: Boolean get() = fail()
+    override val defaultValue: EXTERIOR get() = fail()
+    override val options: List<Any> get() = fail()
 
     private fun fail(): Nothing {
         error("Fix google/ksp compile errors.")

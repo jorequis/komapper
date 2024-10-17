@@ -90,8 +90,16 @@ class DefaultR2dbcDataOperator(private val dialect: R2dbcDialect, private val da
         return dataTypeProvider.get(type)
     }
 
-    override fun <T : Any> getDataTypeName(type: KType): String {
+    override fun <T : Any> getDataTypeName(type: KType, options: List<Any>): String {
         val dataType = getDataType<T>(type)
-        return dataType.name
+        return dataType.name.replaceWithOptions(options)
+    }
+
+    private fun String.replaceWithOptions(options: List<Any>): String {
+        var result = this
+        for (i in options.indices) {
+            result = result.replace("{$i}", options[i].toString())
+        }
+        return result
     }
 }

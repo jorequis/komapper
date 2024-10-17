@@ -29,10 +29,10 @@ class R2dbcSchemaTest(private val db: R2dbcDatabase) {
     @Test
     fun create(info: TestInfo) = inTransaction(db, info) {
         db.runQuery {
-            QueryDsl.create(metamodels)
+            QueryDsl.create(metamodels, false)
         }
         db.runQuery {
-            QueryDsl.create(metamodels)
+            QueryDsl.create(metamodels, false)
         }
         // tear down
         db.runQuery {
@@ -43,7 +43,7 @@ class R2dbcSchemaTest(private val db: R2dbcDatabase) {
     @Test
     fun create_check(info: TestInfo) = inTransaction(db, info) {
         db.runQuery {
-            QueryDsl.create(metamodels)
+            QueryDsl.create(metamodels, false)
         }
         // check existence
         db.runQuery {

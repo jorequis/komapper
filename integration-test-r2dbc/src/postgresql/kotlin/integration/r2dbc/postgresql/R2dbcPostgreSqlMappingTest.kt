@@ -14,7 +14,7 @@ class R2dbcPostgreSqlMappingTest(private val db: R2dbcDatabase) {
     @Test
     fun test(info: TestInfo) = inTransaction(db, info) {
         db.runQuery {
-            QueryDsl.create(Meta.r2dbcPostgreSqlMapping)
+            QueryDsl.create(listOf(Meta.r2dbcPostgreSqlMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.r2dbcPostgreSqlMapping)

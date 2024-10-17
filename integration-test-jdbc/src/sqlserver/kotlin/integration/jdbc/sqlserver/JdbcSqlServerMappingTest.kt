@@ -12,7 +12,7 @@ class JdbcSqlServerMappingTest(private val db: JdbcDatabase) {
     @Test
     fun test() {
         db.runQuery {
-            QueryDsl.create(Meta.jdbcSqlServerMapping)
+            QueryDsl.create(listOf(Meta.jdbcSqlServerMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.jdbcSqlServerMapping)

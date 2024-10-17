@@ -5,6 +5,7 @@ import io.r2dbc.spi.ConnectionFactory
 import io.r2dbc.spi.ConnectionFactoryOptions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.runBlocking
 import org.komapper.core.ClockProvider
 import org.komapper.core.Database
 import org.komapper.core.DefaultClockProvider
@@ -47,6 +48,24 @@ interface R2dbcDatabase : Database {
      * @return the result represented by the query
      */
     suspend fun <T> runQuery(block: QueryScope.() -> Query<T>): T
+
+    /**
+     * Runs blocking the given [query] and returns the result.
+     *
+     * @param query the query
+     * @return the result represented by the query
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T> runQueryBlocking(query: Query<T>): T
+
+    /**
+     * Runs blocking the given [query] and returns the result.
+     *
+     * @param query the query
+     * @return the result represented by the query
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T> runQueryBlocking(block: QueryScope.() -> Query<T>): T
 
     /**
      * Converts the given [query] to [Flow].
@@ -108,6 +127,10 @@ internal class R2dbcDatabaseImpl(override val config: R2dbcDatabaseConfig) : R2d
         val query = block(QueryScope)
         return runQuery(query)
     }
+
+    override fun <T> runQueryBlocking(query: Query<T>): T = runBlocking { runQuery(query) }
+
+    override fun <T> runQueryBlocking(block: QueryScope.() -> Query<T>): T = runBlocking { runQuery(block) }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> flowQuery(query: FlowQuery<T>): Flow<T> {

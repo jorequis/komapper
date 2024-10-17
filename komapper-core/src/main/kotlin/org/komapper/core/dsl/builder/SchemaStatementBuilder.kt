@@ -3,23 +3,23 @@ package org.komapper.core.dsl.builder
 import org.komapper.core.BuilderDialect
 import org.komapper.core.Statement
 import org.komapper.core.StatementBuffer
-import org.komapper.core.dsl.metamodel.EntityMetamodel
-import org.komapper.core.dsl.metamodel.IdGenerator
-import org.komapper.core.dsl.metamodel.PropertyMetamodel
-import org.komapper.core.dsl.metamodel.isAutoIncrement
+import org.komapper.core.dsl.metamodel.*
+import java.time.LocalDateTime
 
 interface SchemaStatementBuilder {
-    fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement>
+    fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): List<Statement>
+    fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement>
     fun drop(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement>
 }
 
 abstract class AbstractSchemaStatementBuilder(
     protected val dialect: BuilderDialect,
 ) : SchemaStatementBuilder {
-    override fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement> {
+
+    override fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): List<Statement> {
         val statements = mutableListOf<Statement>()
         for (e in metamodels) {
-            statements.addAll(createTable(e))
+            statements.addAll(createTable(e, withForeignKeys))
             statements.addAll(createSequence(e))
         }
         return statements.filter { it.parts.isNotEmpty() }
@@ -34,43 +34,58 @@ abstract class AbstractSchemaStatementBuilder(
         return statements.filter { it.parts.isNotEmpty() }
     }
 
-    protected open fun createTable(metamodel: EntityMetamodel<*, *, *>): List<Statement> {
+    protected open fun createTable(metamodel: EntityMetamodel<*, *, *>, withForeignKeys: Boolean): List<Statement> {
         val buf = StatementBuffer()
         val tableName = metamodel.getCanonicalTableName(dialect::enquote)
         buf.append("create table ")
-        if (dialect.supportsCreateIfNotExists()) {
-            buf.append("if not exists ")
-        }
+        if (dialect.supportsCreateIfNotExists()) buf.append("if not exists ")
         buf.append("$tableName (")
-        val columnDefinition = metamodel.properties().joinToString { p ->
-            val columnName = p.getCanonicalColumnName(dialect::enquote)
-            val dataTypeName = resolveDataTypeName(p)
-            val notNull = if (p.nullable) "" else " not null"
-            val identity = resolveIdentity(p)
-            "$columnName ${dataTypeName}$identity$notNull"
-        }
-        buf.append(columnDefinition)
+        val columnsDefinition = metamodel.properties().joinToString { p -> columnDefinition(p) }
+        buf.append(columnsDefinition)
         val primaryKeys = metamodel.idProperties() - metamodel.virtualIdProperties().toSet()
-        if (primaryKeys.isNotEmpty()) {
-            buf.append(", ")
-            val primaryKeyName = "pk_${metamodel.tableName()}"
-            buf.append("constraint $primaryKeyName primary key(")
-            val pkList = primaryKeys.joinToString { p ->
-                p.getCanonicalColumnName(dialect::enquote)
-            }
-            buf.append(pkList)
-            buf.append(")")
-        }
+        if (primaryKeys.isNotEmpty()) buf.appendPrimaryKeysDefinition(metamodel = metamodel, primaryKeys = primaryKeys)
+        val indexDefinitions = listOf(
+            if (withForeignKeys) metamodel.foreignKeys().joinToString { foreignKey -> ", ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" } else "",
+            metamodel.uniqueKeys().joinToString { uniqueKey -> ", ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
+            metamodel.indexes().joinToString { index -> ", ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
+        )
+        buf.append(indexDefinitions.filter { it.isNotBlank() }.joinToString())
         buf.append(")")
         return listOf(buf.toStatement())
     }
 
+    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement> {
+        val buf = StatementBuffer()
+        val tableName = metamodel.getCanonicalTableName(dialect::enquote)
+        buf.append("alter table $tableName ")
+        val columnsDefinition = metamodel.properties().filter { !existingColumns.contains(it.name) }.joinToString { p -> "ADD COLUMN ${columnDefinition(p)}" }
+
+        if (columnsDefinition.isNotEmpty()) buf.append("$columnsDefinition, ")
+
+        val indexDefinitions = listOf(
+            metamodel.foreignKeys().filter { !existingIndexes.contains(it.name) }.joinToString { foreignKey -> "ADD ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
+            metamodel.uniqueKeys().filter { !existingIndexes.contains(it.name) }.joinToString { uniqueKey -> "ADD ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
+            metamodel.indexes().filter { !existingIndexes.contains(it.name) }.joinToString { index -> "ADD ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
+        )
+        buf.append(indexDefinitions.filter { it.isNotBlank() }.joinToString())
+        return listOf(buf.toStatement())
+    }
+
     protected open fun <INTERIOR : Any> resolveDataTypeName(property: PropertyMetamodel<*, *, INTERIOR>): String {
-        return dialect.getDataTypeName<INTERIOR>(property.interiorType)
+        return dialect.getDataTypeName<INTERIOR>(property.interiorType, property.options)
     }
 
     protected open fun resolveIdentity(property: PropertyMetamodel<*, *, *>): String {
         return if (property.isAutoIncrement()) " auto_increment" else ""
+    }
+
+    private fun resolveDefaultValue(property: PropertyMetamodel<*, *, *>): String {
+        return if (property.defaultValue != null) " DEFAULT ${
+            when (property.defaultValue!!::class) {
+                LocalDateTime::class, String::class -> "'${property.defaultValue}'"
+                else -> property.defaultValue.toString()
+            }
+        }" else ""
     }
 
     protected open fun createSequence(metamodel: EntityMetamodel<*, *, *>): List<Statement> {
@@ -120,9 +135,49 @@ abstract class AbstractSchemaStatementBuilder(
                 .map { it.schemaName }
         return (tableSchemaNames + sequenceSchemaNames).distinct().filter { it.isNotBlank() }
     }
+
+    private fun columnDefinition(propertyMetamodel: PropertyMetamodel<*, *, *>): String {
+        val columnName = propertyMetamodel.getCanonicalColumnName(dialect::enquote)
+        val dataTypeName = resolveDataTypeName(propertyMetamodel)
+        val notNull = if (propertyMetamodel.nullable) "" else " not null"
+        val identity = resolveIdentity(propertyMetamodel)
+        val defaultValue = resolveDefaultValue(propertyMetamodel)
+        return "$columnName ${dataTypeName}$identity$notNull$defaultValue"
+    }
+
+    private fun StatementBuffer.appendPrimaryKeysDefinition(metamodel: EntityMetamodel<*, *, *>, primaryKeys: List<PropertyMetamodel<*, *, *>>) {
+        this.append(", ")
+        val primaryKeyName = "pk_${metamodel.tableName()}"
+        this.append("constraint $primaryKeyName primary key(")
+        val pkList = primaryKeys.joinToString { p ->
+            p.getCanonicalColumnName(dialect::enquote)
+        }
+        this.append(pkList)
+        this.append(")")
+    }
+
+    private fun foreignKeyDefinition(metamodel: EntityMetamodel<*, *, *>, foreignKey: ForeignKey): String {
+        return "CONSTRAINT `${foreignKeyName(metamodel, foreignKey)}` " +
+                "FOREIGN KEY (`${foreignKey.name}`) " +
+                "REFERENCES `${foreignKey.referenceColumn.metamodel.owner.tableName()}`(`${foreignKey.referenceColumn.name}`) " +
+                "ON DELETE ${foreignKey.onDelete.sql} ON UPDATE ${foreignKey.onUpdate.sql}"
+    }
+
+    private fun uniqueKeysDefinition(metamodel: EntityMetamodel<*, *, *>, uniqueKey: UniqueKey): String {
+        return "CONSTRAINT `${uniqueKeyName(metamodel, uniqueKey)}` UNIQUE (${uniqueKey.columns.joinToString { it.name }})"
+    }
+
+    private fun indexDefinition(metamodel: EntityMetamodel<*, *, *>, index: Index, onTable: Boolean = false): String {
+        return "INDEX `${indexName(metamodel, index)}`${if (onTable) " ON ${metamodel.tableName()} " else " "}(${index.columns.joinToString { it.name }}) USING ${index.type}"
+    }
+
+    private fun foreignKeyName(metamodel: EntityMetamodel<*, *, *>, foreignKey: ForeignKey) = "fk_${metamodel.tableName()}_${foreignKey.referenceColumn.metamodel.owner.tableName()}_${foreignKey.referenceColumn.name}"
+    private fun uniqueKeyName(metamodel: EntityMetamodel<*, *, *>, uniqueKey: UniqueKey) = uniqueKey.name//"uk_${metamodel.tableName()}_${uniqueKey.name}"
+    private fun indexName(metamodel: EntityMetamodel<*, *, *>, index: Index) = index.name//"idx_${metamodel.tableName()}_${index.name}"
 }
 
 object DryRunSchemaStatementBuilder : SchemaStatementBuilder {
-    override fun create(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement> = emptyList()
+    override fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): List<Statement> = emptyList()
+    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement> = emptyList()
     override fun drop(metamodels: List<EntityMetamodel<*, *, *>>): List<Statement> = emptyList()
 }

@@ -12,7 +12,7 @@ class JdbcOracleMappingTest(private val db: JdbcDatabase) {
     @Test
     fun test() {
         db.runQuery {
-            QueryDsl.create(Meta.jdbcOracleMapping)
+            QueryDsl.create(listOf(Meta.jdbcOracleMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.jdbcOracleMapping)

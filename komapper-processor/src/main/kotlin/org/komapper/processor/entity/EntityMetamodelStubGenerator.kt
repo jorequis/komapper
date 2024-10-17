@@ -1,6 +1,9 @@
 package org.komapper.processor.entity
 
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import org.komapper.core.dsl.metamodel.ForeignKey
+import org.komapper.core.dsl.metamodel.Index
+import org.komapper.core.dsl.metamodel.UniqueKey
 import org.komapper.processor.BackquotedSymbols.EntityMetamodelImplementor
 import org.komapper.processor.BackquotedSymbols.EntityMetamodelStub
 import org.komapper.processor.BackquotedSymbols.PropertyMetamodel
@@ -37,6 +40,12 @@ internal class EntityMetamodelStubGenerator(
             w.println("package $packageName")
             w.println()
         }
+
+        w.println("import org.komapper.core.dsl.metamodel.ForeignKey")
+        w.println("import org.komapper.core.dsl.metamodel.Index")
+        w.println("import org.komapper.core.dsl.metamodel.UniqueKey")
+        w.println()
+
         w.println("// generated at ${ZonedDateTime.now()}")
         w.println("@$EntityMetamodelImplementor($entityTypeName::class)")
         w.println("public class $simpleName : $EntityMetamodelStub<$entityTypeName, $simpleName>() {")
@@ -55,6 +64,12 @@ internal class EntityMetamodelStubGenerator(
             w.println("        public val `$alias` = $simpleName()")
         }
         w.println("    }")
+        w.println()
+
+        w.println("    override fun foreignKeys(): List<ForeignKey> = emptyList()")
+        w.println("    override fun uniqueKeys(): List<UniqueKey> = emptyList()")
+        w.println("    override fun indexes(): List<Index> = emptyList()")
+
         w.println("}")
         w.println("")
         for (alias in aliases) {

@@ -32,10 +32,10 @@ class JdbcSchemaTest(private val db: JdbcDatabase) {
     @Test
     fun create() {
         db.runQuery {
-            QueryDsl.create(metamodels)
+            QueryDsl.create(metamodels, false)
         }
         db.runQuery {
-            QueryDsl.create(metamodels)
+            QueryDsl.create(metamodels, false)
         }
         // tear down
         db.runQuery {
@@ -46,7 +46,7 @@ class JdbcSchemaTest(private val db: JdbcDatabase) {
     @Test
     fun create_check() {
         db.runQuery {
-            QueryDsl.create(metamodels)
+            QueryDsl.create(metamodels, false)
         }
         // check existence
         db.runQuery {
@@ -77,11 +77,11 @@ class JdbcSchemaTest(private val db: JdbcDatabase) {
     @Test
     fun virtualId() {
         val result = db.dryRunQuery {
-            QueryDsl.create(Meta.belonging)
+            QueryDsl.create(listOf(Meta.belonging), false)
         }
         assertFalse(result.sql.contains("primary key"))
         db.runQuery {
-            QueryDsl.create(Meta.belonging)
+            QueryDsl.create(listOf(Meta.belonging), false)
         }
         db.runQuery {
             QueryDsl.drop(Meta.belonging)
@@ -91,11 +91,11 @@ class JdbcSchemaTest(private val db: JdbcDatabase) {
     @Test
     fun virtualEmbeddedId() {
         val result = db.dryRunQuery {
-            QueryDsl.create(Meta.assignment)
+            QueryDsl.create(listOf(Meta.assignment), false)
         }
         assertFalse(result.sql.contains("primary key"))
         db.runQuery {
-            QueryDsl.create(Meta.assignment)
+            QueryDsl.create(listOf(Meta.assignment), false)
         }
         db.runQuery {
             QueryDsl.drop(Meta.assignment)

@@ -76,8 +76,8 @@ include("komapper-platform")
 include("gradle-plugin")
 
 // EXPERIMENTAL
-include("komapper-quarkus-jdbc")
-include("komapper-quarkus-jdbc-deployment")
+//include("komapper-quarkus-jdbc")
+//include("komapper-quarkus-jdbc-deployment")
 include("komapper-tx-context-jdbc")
 include("komapper-tx-context-r2dbc")
 

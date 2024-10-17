@@ -12,7 +12,7 @@ class JdbcMySqlMappingTest(private val db: JdbcDatabase) {
     @Test
     fun test() {
         db.runQuery {
-            QueryDsl.create(Meta.jdbcMySqlMapping)
+            QueryDsl.create(listOf(Meta.jdbcMySqlMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.jdbcMySqlMapping)

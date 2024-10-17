@@ -24,25 +24,16 @@ import org.komapper.core.dsl.options.SelectOptions
 import org.komapper.core.dsl.options.TemplateExecuteOptions
 import org.komapper.core.dsl.options.TemplateSelectOptions
 import org.komapper.core.dsl.options.UpdateOptions
-import org.komapper.core.dsl.query.DeleteQueryBuilder
+import org.komapper.core.dsl.query.*
 import org.komapper.core.dsl.query.DeleteQueryBuilderImpl
-import org.komapper.core.dsl.query.FlowSubquery
-import org.komapper.core.dsl.query.InsertQueryBuilder
 import org.komapper.core.dsl.query.InsertQueryBuilderImpl
-import org.komapper.core.dsl.query.ScalarQuery
-import org.komapper.core.dsl.query.SchemaCreateQuery
+import org.komapper.core.dsl.query.SchemaCreateMissingPropertiesQueryImpl
 import org.komapper.core.dsl.query.SchemaCreateQueryImpl
-import org.komapper.core.dsl.query.SchemaDropQuery
 import org.komapper.core.dsl.query.SchemaDropQueryImpl
-import org.komapper.core.dsl.query.ScriptExecuteQuery
 import org.komapper.core.dsl.query.ScriptExecuteQueryImpl
-import org.komapper.core.dsl.query.SelectQueryBuilder
 import org.komapper.core.dsl.query.SelectQueryBuilderImpl
-import org.komapper.core.dsl.query.TemplateExecuteQuery
 import org.komapper.core.dsl.query.TemplateExecuteQueryImpl
-import org.komapper.core.dsl.query.TemplateSelectQueryBuilder
 import org.komapper.core.dsl.query.TemplateSelectQueryBuilderImpl
-import org.komapper.core.dsl.query.UpdateQueryBuilder
 import org.komapper.core.dsl.query.UpdateQueryBuilderImpl
 
 /**
@@ -247,14 +238,21 @@ interface QueryDsl {
      *
      * @param metamodels the entity metamodels
      */
-    fun create(metamodels: List<EntityMetamodel<*, *, *>>): SchemaCreateQuery
+    fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): SchemaCreateQuery
 
     /**
      * Creates a query for creating tables and their associated constraints.
      *
      * @param metamodels the entity metamodels
      */
-    fun create(vararg metamodels: EntityMetamodel<*, *, *>): SchemaCreateQuery
+    fun create(vararg metamodels: EntityMetamodel<*, *, *>, withForeignKeys: Boolean): SchemaCreateQuery
+
+    /**
+     * Creates a query for creating missing table properties and their associated constraints.
+     *
+     * @param metamodels the entity metamodels
+     */
+    fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, columns: List<String>, indexes: List<String>): SchemaCreateMissingPropertiesQuery
 
     /**
      * Creates a query for dropping tables and their associated constraints.
@@ -388,12 +386,21 @@ internal class QueryDslImpl(
         return ScriptExecuteQueryImpl(ScriptContext(sql, options = scriptOptions))
     }
 
-    override fun create(metamodels: List<EntityMetamodel<*, *, *>>): SchemaCreateQuery {
-        return SchemaCreateQueryImpl(SchemaContext(metamodels, options = schemaOptions))
+    override fun create(metamodels: List<EntityMetamodel<*, *, *>>, withForeignKeys: Boolean): SchemaCreateQuery {
+        return SchemaCreateQueryImpl(SchemaContext(metamodels, options = schemaOptions), withForeignKeys)
     }
 
-    override fun create(vararg metamodels: EntityMetamodel<*, *, *>): SchemaCreateQuery {
-        return create(metamodels.toList())
+    override fun create(vararg metamodels: EntityMetamodel<*, *, *>, withForeignKeys: Boolean): SchemaCreateQuery {
+        return create(metamodels.toList(), withForeignKeys)
+    }
+
+    /**
+     * Creates a query for creating missing table properties and their associated constraints.
+     *
+     * @param metamodels the entity metamodels
+     */
+    override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, columns: List<String>, indexes: List<String>): SchemaCreateMissingPropertiesQuery {
+        return SchemaCreateMissingPropertiesQueryImpl(metamodel, columns, indexes)
     }
 
     override fun drop(metamodels: List<EntityMetamodel<*, *, *>>): SchemaDropQuery {

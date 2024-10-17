@@ -70,7 +70,7 @@ class QueryDslTest {
 
         val expected = SchemaOptions(queryTimeoutSeconds = 20, suppressLogging = true)
         var actual: SchemaOptions? = null
-        QueryDsl(schemaOptions = expected).create(a).options {
+        QueryDsl(schemaOptions = expected).create(listOf(a), false).options {
             actual = it
             it
         }

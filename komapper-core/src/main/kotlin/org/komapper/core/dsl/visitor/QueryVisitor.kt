@@ -248,6 +248,13 @@ interface QueryVisitor<VISIT_RESULT> {
 
     fun schemaCreateQuery(
         context: SchemaContext,
+        withForeignKeys: Boolean
+    ): VISIT_RESULT
+
+    fun schemaCreateMissingPropertiesQuery(
+        metamodel: EntityMetamodel<*, *, *>,
+        columns: List<String>,
+        indexes: List<String>
     ): VISIT_RESULT
 
     fun schemaDropQuery(

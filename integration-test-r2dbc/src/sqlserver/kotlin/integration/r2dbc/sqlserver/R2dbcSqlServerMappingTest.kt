@@ -14,7 +14,7 @@ class R2dbcSqlServerMappingTest(private val db: R2dbcDatabase) {
     @Test
     fun test(info: TestInfo) = inTransaction(db, info) {
         db.runQuery {
-            QueryDsl.create(Meta.r2dbcSqlServerMapping)
+            QueryDsl.create(listOf(Meta.r2dbcSqlServerMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.r2dbcSqlServerMapping)

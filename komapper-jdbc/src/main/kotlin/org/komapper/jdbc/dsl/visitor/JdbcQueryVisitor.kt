@@ -411,8 +411,17 @@ object JdbcQueryVisitor : QueryVisitor<JdbcRunner<*>> {
 
     override fun schemaCreateQuery(
         context: SchemaContext,
+        withForeignKeys: Boolean
     ): JdbcRunner<Unit> {
-        return JdbcSchemaCreateRunner(context)
+        return JdbcSchemaCreateRunner(context, withForeignKeys)
+    }
+
+    override fun schemaCreateMissingPropertiesQuery(
+        metamodel: EntityMetamodel<*, *, *>,
+        columns: List<String>,
+        indexes: List<String>
+    ): JdbcRunner<Unit> {
+        throw NotImplementedError("JDBC schemaCreateMissingPropertiesQuery")
     }
 
     override fun schemaDropQuery(

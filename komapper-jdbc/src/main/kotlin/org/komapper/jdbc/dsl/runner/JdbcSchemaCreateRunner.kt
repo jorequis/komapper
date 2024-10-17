@@ -8,8 +8,9 @@ import org.komapper.jdbc.JdbcDatabaseConfig
 
 internal class JdbcSchemaCreateRunner(
     private val context: SchemaContext,
+    private val withForeignKeys: Boolean
 ) : JdbcRunner<Unit> {
-    private val runner = SchemaCreateRunner(context)
+    private val runner = SchemaCreateRunner(context, withForeignKeys)
 
     override fun check(config: DatabaseConfig) {
         runner.check(config)

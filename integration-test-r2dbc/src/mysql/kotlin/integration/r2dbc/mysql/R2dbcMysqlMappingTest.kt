@@ -14,7 +14,7 @@ class R2dbcMysqlMappingTest(private val db: R2dbcDatabase) {
     @Test
     fun test(info: TestInfo) = inTransaction(db, info) {
         db.runQuery {
-            QueryDsl.create(Meta.r2dbcMysqlMapping)
+            QueryDsl.create(listOf(Meta.r2dbcMysqlMapping), false)
         }
         db.runQuery {
             QueryDsl.from(Meta.r2dbcMysqlMapping)
