@@ -153,8 +153,8 @@ configure(libraryProjects + platformProject) {
                 url = uri("http://192.168.1.15:30008/releases")
                 isAllowInsecureProtocol = true
                 credentials {
-                    username = ""
-                    password = ""
+                    username = rootProject.properties["reposilite_user"].toString()
+                    password = rootProject.properties["reposilite_password"].toString()
                 }
             }
         }
