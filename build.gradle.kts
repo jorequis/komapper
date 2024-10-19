@@ -147,6 +147,17 @@ configure(libraryProjects + platformProject) {
     }
 
     publishing {
+        repositories {
+            maven {
+                name = "Reposilite"
+                url = uri("http://192.168.1.15:30008/releases")
+                isAllowInsecureProtocol = true
+                credentials {
+                    username = ""
+                    password = ""
+                }
+            }
+        }
         publications {
             create<MavenPublication>("maven") {
                 from(components[component])
@@ -250,5 +261,22 @@ task("PublishAllLocal") {
         ":komapper-datetime-r2dbc:publishMavenPublicationToMavenLocal",
         ":komapper-dialect-mariadb:publishMavenPublicationToMavenLocal",
         ":komapper-dialect-mariadb-r2dbc:publishMavenPublicationToMavenLocal"
+    )
+}
+
+task("PublishAllReposilite") {
+    dependsOn(
+        ":komapper-platform:publishMavenPublicationToReposiliteRepository",
+        ":komapper-core:publishMavenPublicationToReposiliteRepository",
+        ":komapper-r2dbc:publishMavenPublicationToReposiliteRepository",
+        ":komapper-starter-r2dbc:publishMavenPublicationToReposiliteRepository",
+        ":komapper-tx-core:publishMavenPublicationToReposiliteRepository",
+        ":komapper-tx-r2dbc:publishMavenPublicationToReposiliteRepository",
+        ":komapper-template:publishMavenPublicationToReposiliteRepository",
+        ":komapper-slf4j:publishMavenPublicationToReposiliteRepository",
+        ":komapper-annotation:publishMavenPublicationToReposiliteRepository",
+        ":komapper-datetime-r2dbc:publishMavenPublicationToReposiliteRepository",
+        ":komapper-dialect-mariadb:publishMavenPublicationToReposiliteRepository",
+        ":komapper-dialect-mariadb-r2dbc:publishMavenPublicationToReposiliteRepository"
     )
 }

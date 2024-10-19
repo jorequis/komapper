@@ -37,8 +37,8 @@ abstract class AbstractSchemaStatementBuilder(
     protected open fun createTable(metamodel: EntityMetamodel<*, *, *>, withForeignKeys: Boolean): List<Statement> {
         val buf = StatementBuffer()
         val tableName = metamodel.getCanonicalTableName(dialect::enquote)
-        buf.append("create table ")
-        if (dialect.supportsCreateIfNotExists()) buf.append("if not exists ")
+        buf.append("CREATE TABLE ")
+        if (dialect.supportsCreateIfNotExists()) buf.append("IF NOT EXISTS ")
         buf.append("$tableName (")
         val columnsDefinition = metamodel.properties().joinToString { p -> columnDefinition(p) }
         buf.append(columnsDefinition)
@@ -57,17 +57,21 @@ abstract class AbstractSchemaStatementBuilder(
     override fun createMissingProperties(metamodel: EntityMetamodel<*, *, *>, existingColumns: List<String>, existingIndexes: List<String>): List<Statement> {
         val buf = StatementBuffer()
         val tableName = metamodel.getCanonicalTableName(dialect::enquote)
-        buf.append("alter table $tableName ")
+        buf.append("ALTER TABLE $tableName ")
+
         val columnsDefinition = metamodel.properties().filter { !existingColumns.contains(it.name) }.joinToString { p -> "ADD COLUMN ${columnDefinition(p)}" }
+        if (columnsDefinition.isNotEmpty()) buf.append(columnsDefinition)
 
-        if (columnsDefinition.isNotEmpty()) buf.append("$columnsDefinition, ")
-
-        val indexDefinitions = listOf(
-            metamodel.foreignKeys().filter { !existingIndexes.contains(it.name) }.joinToString { foreignKey -> "ADD ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
-            metamodel.uniqueKeys().filter { !existingIndexes.contains(it.name) }.joinToString { uniqueKey -> "ADD ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
-            metamodel.indexes().filter { !existingIndexes.contains(it.name) }.joinToString { index -> "ADD ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
+        val indexDefinitionsList = listOf(
+            metamodel.foreignKeys().filter { foreignKey -> !existingIndexes.contains(foreignKeyName(metamodel, foreignKey)) }.joinToString { foreignKey -> "ADD ${foreignKeyDefinition(metamodel = metamodel, foreignKey = foreignKey)}" },
+            metamodel.uniqueKeys().filter { uniqueKey -> !existingIndexes.contains(uniqueKeyName(metamodel, uniqueKey)) }.joinToString { uniqueKey -> "ADD ${uniqueKeysDefinition(metamodel = metamodel, uniqueKey = uniqueKey)}" },
+            metamodel.indexes().filter { index -> !existingIndexes.contains(indexName(metamodel, index)) }.joinToString { index -> "ADD ${indexDefinition(metamodel = metamodel, index = index, onTable = false)}" }
         )
-        buf.append(indexDefinitions.filter { it.isNotBlank() }.joinToString())
+        val indexDefinitions = indexDefinitionsList.filter { it.isNotBlank() }.joinToString()
+        if (indexDefinitions.isNotEmpty()) {
+            if (columnsDefinition.isNotEmpty()) buf.append(", ")
+            buf.append(indexDefinitions)
+        }
         return listOf(buf.toStatement())
     }
 

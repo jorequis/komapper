@@ -3,6 +3,7 @@ package org.komapper.dialect.mariadb.r2dbc
 import kotlinx.coroutines.runBlocking
 import org.komapper.core.dsl.QueryDsl
 import org.komapper.core.dsl.metamodel.Column
+import org.komapper.core.dsl.metamodel.Join
 import org.komapper.core.dsl.metamodel.Table
 import org.komapper.core.dsl.query.*
 import org.komapper.r2dbc.R2dbcDatabase
@@ -37,6 +38,16 @@ suspend fun <ENTITY : Any> Table<ENTITY>.createIn(database: R2dbcDatabase, withF
 
 suspend fun <ENTITY : Any> R2dbcDatabase.selectAllFrom(table: Table<ENTITY>) = runQuery { QueryDsl.from(table) }
 
+@Suppress("UNCHECKED_CAST")
+suspend fun <ENTITY : Any, COLUMN_TYPE : Any> R2dbcDatabase.selectAllFrom(table: Table<*>, joins: List<Join<COLUMN_TYPE>>): List<ENTITY> {
+    val joinsProperties = joins.flatMap { join -> join.table.properties() }
+
+    val query = QueryDsl.from(metamodel = table) as EntitySelectQuery<Table<*>>
+    val queryWithJoins = joins.fold(initial = query) { acc, element -> acc.innerJoin(element.table) { element.columnA eq element.columnB } }
+    val records = runQuery { queryWithJoins.select(*(table.properties() + joinsProperties).toTypedArray()) } as List<RecordImpl>
+    return records.map { record -> table.newJoinEntity(recordImpl = record) as ENTITY }
+}
+
 suspend fun <ENTITY : Any, RESULT> R2dbcDatabase.selectFrom(table: Table<ENTITY>, block: SelectQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<RESULT>) = runQuery { QueryDsl.from(table).block() }
 
 suspend fun <ENTITY : Any> R2dbcDatabase.insertInto(table: Table<ENTITY>, block: InsertQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<ENTITY>) = runQuery { QueryDsl.insert(table).block() }
@@ -45,7 +56,7 @@ suspend fun <ENTITY : Any> R2dbcDatabase.updateWhere(table: Table<ENTITY>, block
 
 suspend fun <ENTITY : Any> R2dbcDatabase.updateInto(table: Table<ENTITY>, block: UpdateQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<ENTITY>) = runQuery { QueryDsl.update(table).block() }
 
-fun <T : Any> SelectQueryBuilder<T, Int, Table<T>>.orderBy(column: Column<*, *, T>): EntitySelectQuery<T> = orderBy(column.metamodel)
+fun <ENTITY : Any> SelectQueryBuilder<ENTITY, Int, Table<ENTITY>>.orderBy(column: Column<*, *, ENTITY>): EntitySelectQuery<ENTITY> = orderBy(column.metamodel)
 
 private suspend fun <ENTITY : Any> R2dbcDatabase.getTableColumns(dbName: String, table: Table<ENTITY>): List<String> {
     return runQuery {

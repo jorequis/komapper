@@ -1,6 +1,7 @@
 package org.komapper.core.dsl.metamodel
 
 import org.komapper.core.dsl.expression.Operand
+import org.komapper.core.dsl.query.RecordImpl
 import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.reflect.KClass
@@ -26,6 +27,10 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     private var initialized = false
 
     abstract fun toEntity(propertyMap: Map<Column<*, *, ENTITY>, Any?>): ENTITY
+
+    open fun toJoinEntity(propertyMap: Map<Column<*, *, ENTITY>, Any?>, recordImpl: RecordImpl): ENTITY {
+        throw Exception("Not yet implemented: toJoinEntity")
+    }
 
     override fun foreignKeys(): List<ForeignKey> = foreignKeyList
 
@@ -65,12 +70,15 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     }
 
     override fun newEntity(m: Map<PropertyMetamodel<*, *, *>, Any?>): ENTITY {
-        //throw Exception("Not yet implemented: newEntity")
         return toEntity(m.mapKeys { propertyMetamodelsColumnsMap!![it.key]!! })
     }
 
+    fun newJoinEntity(recordImpl: RecordImpl): ENTITY {
+        val propertyMap = properties().associate { property -> propertyMetamodelsColumnsMap!![property]!! to recordImpl[property] }
+        return toJoinEntity(propertyMap = propertyMap, recordImpl = recordImpl)
+    }
+
     override fun properties(): List<PropertyMetamodel<ENTITY, *, *>> {
-        //throw Exception("Not yet implemented: properties")
         if (!initialized) initialize()
         return propertyMetamodels!!
     }
@@ -218,4 +226,5 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
         val hasNewIndexes = indexes.size != (this.foreignKeys().size + this.uniqueKeys().size + this.indexes().size)
         return hasNewColumns || hasNewIndexes
     }
+
 }
