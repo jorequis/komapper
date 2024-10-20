@@ -26,11 +26,9 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
 
     private var initialized = false
 
-    abstract fun toEntity(propertyMap: Map<Column<*, *, ENTITY>, Any?>): ENTITY
+    //abstract fun toEntity(propertyMap: Map<Column<*, *, ENTITY>, Any?>): ENTITY
 
-    open fun toJoinEntity(propertyMap: Map<Column<*, *, ENTITY>, Any?>, recordImpl: RecordImpl): ENTITY {
-        throw Exception("Not yet implemented: toJoinEntity")
-    }
+    //open fun toJoinEntity(propertyMap: Map<Column<*, *, ENTITY>, Any?>, recordImpl: RecordImpl): ENTITY = toEntity(propertyMap = propertyMap)
 
     override fun foreignKeys(): List<ForeignKey> = foreignKeyList
 
@@ -70,12 +68,14 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     }
 
     override fun newEntity(m: Map<PropertyMetamodel<*, *, *>, Any?>): ENTITY {
-        return toEntity(m.mapKeys { propertyMetamodelsColumnsMap!![it.key]!! })
+        TODO("")
+        //return toEntity(m.mapKeys { propertyMetamodelsColumnsMap!![it.key]!! })
     }
 
     fun newJoinEntity(recordImpl: RecordImpl): ENTITY {
-        val propertyMap = properties().associate { property -> propertyMetamodelsColumnsMap!![property]!! to recordImpl[property] }
-        return toJoinEntity(propertyMap = propertyMap, recordImpl = recordImpl)
+        TODO("")
+        //val propertyMap = properties().associate { property -> propertyMetamodelsColumnsMap!![property]!! to recordImpl[property] }
+        //return toJoinEntity(propertyMap = propertyMap, recordImpl = recordImpl)
     }
 
     override fun properties(): List<PropertyMetamodel<ENTITY, *, *>> {

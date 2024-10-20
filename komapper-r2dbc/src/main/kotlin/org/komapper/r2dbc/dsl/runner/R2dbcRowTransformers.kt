@@ -13,7 +13,7 @@ internal object R2dbcRowTransformers {
         metamodel: EntityMetamodel<ENTITY, *, *>,
         columns: List<ColumnExpression<*, *>> = emptyList(),
         strategy: ProjectionType = ProjectionType.INDEX,
-    ): (R2dbcDataOperator, Row) -> ENTITY =
+    ): (R2dbcDataOperator, Row) -> ENTITY = // ENTITY Map<PropertyMetamodel<*, *, *>, Any?>
         { dataOperator, row ->
             val mapper = R2dbcEntityMapper(strategy, dataOperator, row)
             mapper.execute(metamodel, columns, true) as ENTITY
@@ -87,9 +87,8 @@ internal object R2dbcRowTransformers {
             transform(Triple(first, second, third))
         }
 
-    fun multipleColumns(expressions: List<ColumnExpression<*, *>>): (R2dbcDataOperator, Row) -> Record = { dataOperator, row ->
+    fun multipleColumns(expressions: List<ColumnExpression<*, *>>): (R2dbcDataOperator, Row) ->  Map<ColumnExpression<*, *>, Any?> = { dataOperator, row ->
         val extractor = R2dbcIndexedValueExtractor(dataOperator, row)
-        val map = expressions.associateWith { extractor.execute(it) }
-        RecordImpl(map)
+        expressions.associateWith { extractor.execute(it) }
     }
 }

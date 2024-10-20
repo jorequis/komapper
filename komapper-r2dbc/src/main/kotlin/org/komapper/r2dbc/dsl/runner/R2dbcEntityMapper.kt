@@ -14,7 +14,7 @@ internal class R2dbcEntityMapper(strategy: ProjectionType, dataOperator: R2dbcDa
         ProjectionType.NAME -> R2dbcNamedValueExtractor(dataOperator, row)
     }
 
-    fun <E : Any> execute(metamodel: EntityMetamodel<E, *, *>, columns: List<ColumnExpression<*, *>> = emptyList(), forceMapping: Boolean = false): E? {
+    fun <E : Any> execute(metamodel: EntityMetamodel<E, *, *>, columns: List<ColumnExpression<*, *>> = emptyList(), forceMapping: Boolean = false): Map<PropertyMetamodel<*, *, *>, Any?> {
         val valueMap = mutableMapOf<PropertyMetamodel<*, *, *>, Any?>()
         val properties = metamodel.properties()
         for ((p, c) in properties.zip(columns.ifEmpty { properties })) {
@@ -25,10 +25,6 @@ internal class R2dbcEntityMapper(strategy: ProjectionType, dataOperator: R2dbcDa
             }
             valueMap[p] = value
         }
-        return if (forceMapping || valueMap.values.any { it != null }) {
-            metamodel.newEntity(valueMap)
-        } else {
-            null
-        }
+        return valueMap
     }
 }

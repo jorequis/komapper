@@ -2,8 +2,10 @@ package org.komapper.dialect.mariadb.r2dbc
 
 import kotlinx.coroutines.runBlocking
 import org.komapper.core.dsl.QueryDsl
+import org.komapper.core.dsl.expression.ColumnExpression
 import org.komapper.core.dsl.metamodel.Column
 import org.komapper.core.dsl.metamodel.Join
+import org.komapper.core.dsl.metamodel.PropertyMetamodel
 import org.komapper.core.dsl.metamodel.Table
 import org.komapper.core.dsl.query.*
 import org.komapper.r2dbc.R2dbcDatabase
@@ -11,6 +13,11 @@ import org.komapper.tx.core.CoroutineTransactionOperator
 import org.komapper.tx.core.EmptyTransactionProperty
 import org.komapper.tx.core.TransactionAttribute
 import org.komapper.tx.core.TransactionProperty
+
+@Suppress("UNCHECKED_CAST")
+operator fun <EXTERIOR : Any> Map<ColumnExpression<*, *>, Any?>.get(column: Column<EXTERIOR, *, *>): EXTERIOR = this[column.metamodel] as EXTERIOR
+
+fun <JOIN_TYPE : Any> List<Join<JOIN_TYPE>>.contains(table: Table<*>): Boolean = this.any { join -> join.table == table }
 
 suspend fun <R> R2dbcDatabase.transaction(transactionAttribute: TransactionAttribute = TransactionAttribute.REQUIRED, transactionProperty: TransactionProperty = EmptyTransactionProperty, block: suspend R2dbcDatabase.(CoroutineTransactionOperator) -> R) = withTransaction(transactionAttribute, transactionProperty) { block(it) }
 
@@ -36,7 +43,19 @@ suspend fun <ENTITY : Any> R2dbcDatabase.createTableOrMissingProperties(dbName: 
 
 suspend fun <ENTITY : Any> Table<ENTITY>.createIn(database: R2dbcDatabase, withForeignKeys: Boolean) = database.runQuery { QueryDsl.create(listOf(this@createIn), withForeignKeys) }
 
-suspend fun <ENTITY : Any> R2dbcDatabase.selectAllFrom(table: Table<ENTITY>) = runQuery { QueryDsl.from(table) }
+fun <ENTITY : Any, RESULT> Table<ENTITY>.select(block: SelectQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<RESULT>): Query<RESULT> = QueryDsl.from(metamodel = this).block()
+
+@Suppress("UNCHECKED_CAST")
+fun <ENTITY : Any, RESULT> Table<ENTITY>.selectAll(): Query<RESULT> = QueryDsl.from(metamodel = this) as Query<RESULT>
+
+@Suppress("UNCHECKED_CAST")
+fun <ENTITY : Any, RESULT, COLUMN_TYPE : Any> Table<ENTITY>.join(joins: List<Join<COLUMN_TYPE>>): Query<RESULT> {
+    val joinsProperties = joins.flatMap { join -> join.table.properties() }
+
+    val query = QueryDsl.from(metamodel = this) as EntitySelectQuery<Table<*>>
+    val queryWithJoins = joins.fold(initial = query) { acc, element -> acc.innerJoin(element.table) { element.columnA eq element.columnB } }
+    return queryWithJoins.select(*(this.properties() + joinsProperties).toTypedArray()) as Query<RESULT>
+}
 
 @Suppress("UNCHECKED_CAST")
 suspend fun <ENTITY : Any, COLUMN_TYPE : Any> R2dbcDatabase.selectAllFrom(table: Table<*>, joins: List<Join<COLUMN_TYPE>>): List<ENTITY> {
@@ -47,8 +66,6 @@ suspend fun <ENTITY : Any, COLUMN_TYPE : Any> R2dbcDatabase.selectAllFrom(table:
     val records = runQuery { queryWithJoins.select(*(table.properties() + joinsProperties).toTypedArray()) } as List<RecordImpl>
     return records.map { record -> table.newJoinEntity(recordImpl = record) as ENTITY }
 }
-
-suspend fun <ENTITY : Any, RESULT> R2dbcDatabase.selectFrom(table: Table<ENTITY>, block: SelectQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<RESULT>) = runQuery { QueryDsl.from(table).block() }
 
 suspend fun <ENTITY : Any> R2dbcDatabase.insertInto(table: Table<ENTITY>, block: InsertQueryBuilder<ENTITY, Int, Table<ENTITY>>.() -> Query<ENTITY>) = runQuery { QueryDsl.insert(table).block() }
 

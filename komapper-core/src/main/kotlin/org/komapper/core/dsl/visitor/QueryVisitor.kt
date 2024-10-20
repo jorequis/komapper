@@ -351,13 +351,13 @@ interface QueryVisitor<VISIT_RESULT> {
     fun <R> multipleColumnsSelectQuery(
         context: SelectContext<*, *, *>,
         expressions: List<ColumnExpression<*, *>>,
-        collect: suspend (Flow<Record>) -> R,
+        collect: suspend (Flow<Map<ColumnExpression<*, *>, Any?>>) -> R,
     ): VISIT_RESULT
 
     fun <R> multipleColumnsSetOperationQuery(
         context: SetOperationContext,
         expressions: List<ColumnExpression<*, *>>,
-        collect: suspend (Flow<Record>) -> R,
+        collect: suspend (Flow<Map<ColumnExpression<*, *>, Any?>>) -> R,
     ): VISIT_RESULT
 
     fun <ENTITY : Any, R> entityProjectionSelectQuery(

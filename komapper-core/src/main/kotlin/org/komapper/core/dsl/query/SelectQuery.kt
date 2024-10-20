@@ -237,7 +237,7 @@ interface SelectQuery<ENTITY, QUERY : SelectQuery<ENTITY, QUERY>> :
      */
     fun select(
         vararg expressions: ColumnExpression<*, *>,
-    ): FlowSubquery<Record>
+    ): FlowSubquery<Map<ColumnExpression<*, *>, Any?>>
 
     /**
      * Builds a query that selects multiple columns.
@@ -247,7 +247,7 @@ interface SelectQuery<ENTITY, QUERY : SelectQuery<ENTITY, QUERY>> :
      */
     fun selectAsRecord(
         vararg expressions: ColumnExpression<*, *>,
-    ): FlowSubquery<Record>
+    ): FlowSubquery<Map<ColumnExpression<*, *>, Any?>>
 
     /**
      * Builds a query that selects multiple columns and transforms a row into an entity.

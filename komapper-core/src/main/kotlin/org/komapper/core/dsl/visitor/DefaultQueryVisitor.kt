@@ -481,7 +481,7 @@ internal object DefaultQueryVisitor : QueryVisitor<Runner> {
     override fun <R> multipleColumnsSelectQuery(
         context: SelectContext<*, *, *>,
         expressions: List<ColumnExpression<*, *>>,
-        collect: suspend (Flow<Record>) -> R,
+        collect: suspend (Flow<Map<ColumnExpression<*, *>, Any?>>) -> R,
     ): Runner {
         return SelectRunner(context)
     }
@@ -489,7 +489,7 @@ internal object DefaultQueryVisitor : QueryVisitor<Runner> {
     override fun <R> multipleColumnsSetOperationQuery(
         context: SetOperationContext,
         expressions: List<ColumnExpression<*, *>>,
-        collect: suspend (Flow<Record>) -> R,
+        collect: suspend (Flow<Map<ColumnExpression<*, *>, Any?>>) -> R,
     ): Runner {
         return SetOperationRunner(context)
     }

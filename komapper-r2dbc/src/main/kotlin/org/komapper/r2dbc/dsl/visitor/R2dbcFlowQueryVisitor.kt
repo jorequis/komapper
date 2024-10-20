@@ -131,7 +131,7 @@ object R2dbcFlowQueryVisitor : FlowQueryVisitor<R2dbcFlowBuilder<*>> {
     override fun multipleColumnsSelectQuery(
         context: SelectContext<*, *, *>,
         expressions: List<ColumnExpression<*, *>>,
-    ): R2dbcFlowBuilder<Record> {
+    ): R2dbcFlowBuilder<Map<ColumnExpression<*, *>, Any?>> {
         val transform = R2dbcRowTransformers.multipleColumns(expressions)
         return R2dbcSelectFlowBuilder(context, transform)
     }
@@ -139,7 +139,7 @@ object R2dbcFlowQueryVisitor : FlowQueryVisitor<R2dbcFlowBuilder<*>> {
     override fun multipleColumnsSetOperationQuery(
         context: SetOperationContext,
         expressions: List<ColumnExpression<*, *>>,
-    ): R2dbcFlowBuilder<Record> {
+    ): R2dbcFlowBuilder<Map<ColumnExpression<*, *>, Any?>> {
         val transform = R2dbcRowTransformers.multipleColumns(expressions)
         return R2dbcSetOperationFlowBuilder(context, transform)
     }

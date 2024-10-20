@@ -564,7 +564,7 @@ object R2dbcQueryVisitor : QueryVisitor<R2dbcRunner<*>> {
     override fun <R> multipleColumnsSelectQuery(
         context: SelectContext<*, *, *>,
         expressions: List<ColumnExpression<*, *>>,
-        collect: suspend (Flow<Record>) -> R,
+        collect: suspend (Flow< Map<ColumnExpression<*, *>, Any?>>) -> R,
     ): R2dbcRunner<R> {
         val transform = R2dbcRowTransformers.multipleColumns(expressions)
         return R2dbcSelectRunner(context, transform, collect)
@@ -573,7 +573,7 @@ object R2dbcQueryVisitor : QueryVisitor<R2dbcRunner<*>> {
     override fun <R> multipleColumnsSetOperationQuery(
         context: SetOperationContext,
         expressions: List<ColumnExpression<*, *>>,
-        collect: suspend (Flow<Record>) -> R,
+        collect: suspend (Flow< Map<ColumnExpression<*, *>, Any?>>) -> R,
     ): R2dbcRunner<R> {
         val transform = R2dbcRowTransformers.multipleColumns(expressions)
         return R2dbcSetOperationRunner(context, transform, collect)
