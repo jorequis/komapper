@@ -3,7 +3,9 @@ package org.komapper.core.dsl.metamodel
 import org.komapper.core.ThreadSafe
 import org.komapper.core.Value
 import org.komapper.core.dsl.expression.PropertyExpression
+import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
+import kotlin.reflect.full.memberProperties
 
 /**
  * Represents a property metamodel that maps an entity type to exterior and interior types.
@@ -20,6 +22,8 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
      * The name of the property.
      */
     val name: String
+
+    val simpleName: String
 
     /**
      * A function that retrieves the exterior type value from the given entity.
@@ -62,10 +66,11 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
      * @param entity the entity to convert
      * @return a `Value` object containing the interior type
      */
+    @Suppress("UNCHECKED_CAST")
     fun toValue(entity: ENTITY): Value<INTERIOR> {
-        val exterior = getter(entity)
-        val interior = if (exterior == null) null else unwrap(exterior)
-        return Value(interior, interiorType, masking)
+        val kProperty = entity::class.memberProperties.find { member -> member.name.lowercase() == simpleName } as KProperty1<Any, *>
+        val value = kProperty.get(entity) as INTERIOR
+        return Value(value, interiorType, masking)
     }
 }
 
@@ -78,6 +83,7 @@ class PropertyMetamodelImpl<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any>(
     override val exteriorType: KType = descriptor.exteriorType
     override val interiorType: KType = descriptor.interiorType
     override val name: String get() = descriptor.name
+    override val simpleName: String get() = descriptor.name.replace("_", "").lowercase()
     override val columnName: String get() = descriptor.columnName
     override val alwaysQuote: Boolean get() = descriptor.alwaysQuote
     override val masking: Boolean get() = descriptor.masking
@@ -97,6 +103,7 @@ class PropertyMetamodelStub<ENTITY : Any, EXTERIOR : Any> :
     override val exteriorType: KType get() = fail()
     override val interiorType: KType get() = fail()
     override val name: String get() = fail()
+    override val simpleName: String get() = fail()
     override val columnName: String get() = fail()
     override val alwaysQuote: Boolean get() = fail()
     override val masking: Boolean get() = fail()

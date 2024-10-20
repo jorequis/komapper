@@ -173,29 +173,29 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     fun addForeignKey(foreignKey: ForeignKey) = foreignKeyList.add(foreignKey)
 
     // Column definitions
-    private fun <TYPE : Any> createColumn(columnName: String, kClass: KType, getter: (ENTITY) -> TYPE?, setter: (ENTITY, TYPE) -> ENTITY, updatable: Boolean = true, options: List<Any> = emptyList()): Column<TYPE, TYPE, ENTITY> {
-        val descriptor = PropertyDescriptor(exteriorType = kClass, interiorType = kClass, name = columnName, columnName = columnName, alwaysQuote = false, masking = false, updatable = updatable, getter = getter, setter = setter, wrap = { it }, unwrap = { it }, nullable = false, defaultValue = null)
+    private fun <TYPE : Any> createColumn(columnName: String, kClass: KType, updatable: Boolean = true, options: List<Any> = emptyList()): Column<TYPE, TYPE, ENTITY> {
+        val descriptor = PropertyDescriptor<ENTITY, TYPE, TYPE>(exteriorType = kClass, interiorType = kClass, name = columnName, columnName = columnName, alwaysQuote = false, masking = false, updatable = updatable, getter = { TODO("Column getter not implemented") }, setter = { e: ENTITY, v -> TODO("Column setter not implemented") }, wrap = { it }, unwrap = { it }, nullable = false, defaultValue = null)
         return Column(name = columnName, descriptor = descriptor, metamodel = PropertyMetamodelImpl(owner = this, descriptor, options))
     }
 
-    fun bool(columnName: String, getter: (ENTITY) -> Boolean?, setter: (ENTITY, Boolean) -> ENTITY) = createColumn(columnName, typeOf<Boolean>(), getter, setter)
+    fun bool(columnName: String) = createColumn<Boolean>(columnName, typeOf<Boolean>())
 
-    fun integer(columnName: String, getter: (ENTITY) -> Int?, setter: (ENTITY, Int) -> ENTITY) = createColumn(columnName, typeOf<Int>(), getter, setter)
+    fun integer(columnName: String) = createColumn<Int>(columnName, typeOf<Int>())
 
-    fun float(columnName: String, getter: (ENTITY) -> Float?, setter: (ENTITY, Float) -> ENTITY) = createColumn(columnName, typeOf<Float>(), getter, setter)
+    fun float(columnName: String) = createColumn<Float>(columnName, typeOf<Float>())
 
-    fun varchar(columnName: String, length: Int, getter: (ENTITY) -> String?, setter: (ENTITY, String) -> ENTITY) = createColumn(columnName, typeOf<String>(), getter, setter, options = listOf(length))
+    fun varchar(columnName: String, length: Int) = createColumn<String>(columnName, typeOf<String>(), options = listOf(length))
 
-    fun datetime(columnName: String, getter: (ENTITY) -> LocalDateTime?, setter: (ENTITY, LocalDateTime) -> ENTITY) = createColumn(columnName, typeOf<LocalDateTime>(), getter, setter)
+    fun datetime(columnName: String) = createColumn<LocalDateTime>(columnName, typeOf<LocalDateTime>())
 
     fun <ENUM_TYPE : Enum<ENUM_TYPE>> enumeration(columnName: String, kClass: KType, getter: (ENTITY) -> ENUM_TYPE?, setter: (ENTITY, ENUM_TYPE) -> ENTITY, updatable: Boolean = true): Column<ENUM_TYPE, Int, ENTITY> {
         val descriptor = PropertyDescriptor(kClass, typeOf<Int>(), columnName, columnName, alwaysQuote = false, masking = false, updatable = updatable, getter = getter, setter = setter, wrap = { wrapEnum(ordinal = it, kClass = kClass) }, unwrap = ::unwrapEnum, nullable = false, defaultValue = null)
         return Column(name = columnName, descriptor = descriptor, metamodel = PropertyMetamodelImpl(owner = this, descriptor))
     }
 
-    fun <TYPE : Any> reference(columnName: String, kClass: KType, referenceColumn: Column<TYPE, *, *>, onDelete: ReferenceOption, onUpdate: ReferenceOption, getter: (ENTITY) -> TYPE?, setter: (ENTITY, TYPE) -> ENTITY): Column<TYPE, TYPE, ENTITY> {
+    fun <TYPE : Any> reference(columnName: String, kClass: KType, referenceColumn: Column<TYPE, *, *>, onDelete: ReferenceOption, onUpdate: ReferenceOption): Column<TYPE, TYPE, ENTITY> {
         addForeignKey(ForeignKey(name = columnName, referenceColumn = referenceColumn, onDelete = onDelete, onUpdate = onUpdate))
-        return createColumn(columnName, kClass, getter, setter)
+        return createColumn(columnName, kClass)
     }
 
     // Column options
