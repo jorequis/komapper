@@ -217,8 +217,8 @@ interface EntityMetamodel<ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY,
      * @return A string representation of the entity.
      */
     fun toText(entity: ENTITY): String {
-        val props = properties().joinToString(", ") { "${it.name}=${if (it.masking) "*****" else it.getter(entity)}" }
-        return "${klass().simpleName}($props)"
+        val props = properties().joinToString(", ") { "${it.name}=${if (it.masking) "*****" else "Not implemented"}" } //it.getter(entity)
+        return "klass()($props)" //${klass().simpleName}
     }
 }
 

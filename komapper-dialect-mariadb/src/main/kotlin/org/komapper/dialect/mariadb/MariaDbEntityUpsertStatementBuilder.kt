@@ -45,7 +45,8 @@ class MariaDbEntityUpsertStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
         for (entity in entities) {
             buf.append("(")
             for (p in properties) {
-                buf.bind(p.toValue(entity))
+                val value = p.toValue(entity) ?: continue
+                buf.bind(value)
                 buf.append(", ")
             }
             buf.cutBack(2)

@@ -50,7 +50,8 @@ class DefaultEntityInsertStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
             for (entity in entities) {
                 append("(")
                 for (p in properties) {
-                    bind(p.toValue(entity))
+                    val value = p.toValue(entity) ?: continue
+                    bind(value)
                     append(", ")
                 }
                 cutBack(2)

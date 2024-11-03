@@ -12,6 +12,7 @@ import org.komapper.core.dsl.operator.CriteriaContext
 import java.util.Deque
 import java.util.LinkedList
 
+@Suppress("UNCHECKED_CAST")
 class FilterScopeSupport<F : FilterScope<F>>(
     private val constructFilterScope: (FilterScopeSupport<F>) -> F,
     private val deque: Deque<MutableList<Criterion>> = LinkedList(),

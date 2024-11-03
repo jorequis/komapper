@@ -2,8 +2,11 @@ package org.komapper.core.dsl.metamodel
 
 import org.komapper.core.dsl.expression.Operand
 import org.komapper.core.dsl.query.RecordImpl
+import java.lang.reflect.Field
 import java.time.Clock
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
@@ -21,6 +24,9 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     private var idMetamodel: PropertyMetamodel<ENTITY, Int, Int>? = null
     private var idGenerator: IdGenerator.AutoIncrement<ENTITY, Int>? = null
     private val idProperties: MutableList<PropertyMetamodel<ENTITY, Int, Int>> = mutableListOf()
+
+    val createdAt: Column<LocalDateTime, LocalDateTime, ENTITY> = datetime(columnName = "created_at")
+    val updatedAt: Column<LocalDateTime, LocalDateTime, ENTITY> = datetime(columnName = "updated_at")
 
     private val foreignKeyList: MutableList<ForeignKey> = mutableListOf()
 
@@ -104,23 +110,19 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
     override fun tableName(): String = tableName
 
     override fun createdAtAssignment(c: Clock): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
-        return null
-        //throw Exception("Not yet implemented: createdAtAssignment")
+        return createdAt.metamodel to Operand.Argument(createdAt.metamodel, LocalDateTime.now(ZoneOffset.UTC))
     }
 
     override fun createdAtProperty(): PropertyMetamodel<ENTITY, *, *>? {
-        return null
-        //throw Exception("Not yet implemented: createdAtProperty")
+        return createdAt.metamodel
     }
 
     override fun updatedAtAssignment(c: Clock): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
-        return null
-        //throw Exception("Not yet implemented: updatedAtAssignment")
+        return updatedAt.metamodel to Operand.Argument(updatedAt.metamodel, LocalDateTime.now(ZoneOffset.UTC))
     }
 
     override fun updatedAtProperty(): PropertyMetamodel<ENTITY, *, *>? {
-        return null
-        //throw Exception("Not yet implemented: updatedAtProperty")
+        return updatedAt.metamodel
     }
 
     override fun versionAssignment(): Pair<PropertyMetamodel<ENTITY, *, *>, Operand>? {
@@ -142,7 +144,11 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
         var metamodels = mutableListOf<PropertyMetamodel<ENTITY, *, *>>()
         val metamodelsColumnsMap = mutableMapOf<PropertyMetamodel<ENTITY, *, *>, Column<*, *, ENTITY>>()
 
-        kInstance::class.memberProperties.forEach { property ->
+        val declaredFieldNames = kInstance::class.java.declaredFields.getOnlyColumnNames() + listOf("createdAt", "updatedAt")
+        val memberProperties = kInstance::class.memberProperties.getOnlyColumns()
+
+        declaredFieldNames.forEach { declaredFieldName ->
+            val property = memberProperties.find { memberProperty -> memberProperty.name == declaredFieldName }
             val kProperty = property as KProperty1<Any, *>
             try {
                 val column = kProperty.get(kInstance) as Column<*, *, ENTITY>
@@ -174,7 +180,7 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
 
     // Column definitions
     private fun <TYPE : Any> createColumn(columnName: String, kClass: KType, updatable: Boolean = true, options: List<Any> = emptyList()): Column<TYPE, TYPE, ENTITY> {
-        val descriptor = PropertyDescriptor<ENTITY, TYPE, TYPE>(exteriorType = kClass, interiorType = kClass, name = columnName, columnName = columnName, alwaysQuote = false, masking = false, updatable = updatable, getter = { TODO("Column getter not implemented") }, setter = { e: ENTITY, v -> TODO("Column setter not implemented") }, wrap = { it }, unwrap = { it }, nullable = false, defaultValue = null)
+        val descriptor = PropertyDescriptor<ENTITY, TYPE, TYPE>(exteriorType = kClass, interiorType = kClass, name = columnName, columnName = columnName, alwaysQuote = false, masking = false, updatable = updatable, getter = { TODO("Column '$columnName' getter not implemented") }, setter = { e: ENTITY, v -> TODO("Column '$columnName' setter not implemented") }, wrap = { it }, unwrap = { it }, nullable = false, defaultValue = null)
         return Column(name = columnName, descriptor = descriptor, metamodel = PropertyMetamodelImpl(owner = this, descriptor, options))
     }
 
@@ -227,4 +233,17 @@ abstract class Table<ENTITY : Any>(val tableName: String) : EntityMetamodel<ENTI
         return hasNewColumns || hasNewIndexes
     }
 
+    private fun Array<Field>.getOnlyColumnNames(): List<String> {
+        return this.mapNotNull { field ->
+            if (field.type.name.startsWith("org.komapper.core.dsl.metamodel.Column")) return@mapNotNull field.name
+            else return@mapNotNull null
+        }
+    }
+
+    private fun Collection<KProperty1<out Any, *>>.getOnlyColumns(): List<KProperty1<out Any, *>> {
+        return this.mapNotNull { kProperty ->
+            if (kProperty.returnType.toString().startsWith("org.komapper.core.dsl.metamodel.Column")) return@mapNotNull kProperty
+            else return@mapNotNull null
+        }
+    }
 }

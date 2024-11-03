@@ -67,9 +67,10 @@ class DefaultEntityDeleteStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
                 }
                 if (identityProperties.isNotEmpty()) {
                     for (p in identityProperties) {
+                        val value = p.toValue(entity) ?: continue
                         column(p)
                         buf.append(" = ")
-                        buf.bind(p.toValue(entity))
+                        buf.bind(value)
                         buf.append(" and ")
                     }
                     if (!versionRequired) {
@@ -80,7 +81,7 @@ class DefaultEntityDeleteStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
                     checkNotNull(versionProperty)
                     column(versionProperty)
                     buf.append(" = ")
-                    buf.bind(versionProperty.toValue(entity))
+                    buf.bind(versionProperty.toValue(entity)!!)
                 }
             }
             buf.toStatement()

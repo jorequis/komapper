@@ -39,9 +39,10 @@ class DefaultEntityUpdateStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
                 "There are no entity properties to specify in the SET clause of the UPDATE statement"
             }
             for (p in targetProperties) {
+                val value = p.toValue(entity) ?: continue
                 column(p)
                 append(" = ")
-                bind(p.toValue(entity))
+                bind(value)
                 if (p == versionProperty) {
                     append(" + 1")
                 }
@@ -68,9 +69,10 @@ class DefaultEntityUpdateStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
                 }
                 if (idProperties.isNotEmpty()) {
                     for (p in idProperties) {
+                        val value = p.toValue(entity) ?: continue
                         column(p)
                         append(" = ")
-                        bind(p.toValue(entity))
+                        bind(value)
                         append(" and ")
                     }
                     if (!versionRequired) {
@@ -81,7 +83,7 @@ class DefaultEntityUpdateStatementBuilder<ENTITY : Any, ID : Any, META : EntityM
                     checkNotNull(versionProperty)
                     column(versionProperty)
                     append(" = ")
-                    bind(versionProperty.toValue(entity))
+                    bind(versionProperty.toValue(entity)!!)
                 }
             }
             toStatement()

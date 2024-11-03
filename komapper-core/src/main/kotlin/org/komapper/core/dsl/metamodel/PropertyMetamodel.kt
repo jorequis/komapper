@@ -3,8 +3,11 @@ package org.komapper.core.dsl.metamodel
 import org.komapper.core.ThreadSafe
 import org.komapper.core.Value
 import org.komapper.core.dsl.expression.PropertyExpression
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KType
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.memberProperties
 
 /**
@@ -67,11 +70,22 @@ interface PropertyMetamodel<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any> : Prop
      * @return a `Value` object containing the interior type
      */
     @Suppress("UNCHECKED_CAST")
-    fun toValue(entity: ENTITY): Value<INTERIOR> {
-        val kProperty = entity::class.memberProperties.find { member -> member.name.lowercase() == simpleName } as KProperty1<Any, *>
-        val value = kProperty.get(entity) as INTERIOR
+    fun toValue(entity: ENTITY): Value<INTERIOR>? {
+        if (entityProperties == null) initializeEntityProperties(entity = entity)
+        val value = if (simpleName == "createdat" || simpleName == "updatedat")
+            LocalDateTime.now(ZoneOffset.UTC) as INTERIOR
+        else {
+            val kProperty = entityProperties?.get(simpleName) as KProperty1<Any, *>? ?: return null
+            kProperty.get(entity) as INTERIOR
+        }
         return Value(value, interiorType, masking)
     }
+
+    private fun initializeEntityProperties(entity: ENTITY) {
+        entityProperties = entity::class.memberProperties.associate { member -> member.name.lowercase() to member }
+    }
+
+    var entityProperties: Map<String, KProperty1<out ENTITY, *>>?
 }
 
 @Suppress("unused")
@@ -94,6 +108,7 @@ class PropertyMetamodelImpl<ENTITY : Any, EXTERIOR : Any, INTERIOR : Any>(
     override val unwrap: (EXTERIOR) -> INTERIOR get() = descriptor.unwrap
     override val nullable: Boolean get() = descriptor.nullable
     override val defaultValue: EXTERIOR? get() = descriptor.defaultValue
+    override var entityProperties: Map<String, KProperty1<out ENTITY, *>>? = null
 }
 
 @Suppress("unused")
@@ -115,6 +130,7 @@ class PropertyMetamodelStub<ENTITY : Any, EXTERIOR : Any> :
     override val nullable: Boolean get() = fail()
     override val defaultValue: EXTERIOR get() = fail()
     override val options: List<Any> get() = fail()
+    override var entityProperties: Map<String, KProperty1<out ENTITY, *>>? = fail()
 
     private fun fail(): Nothing {
         error("Fix google/ksp compile errors.")
