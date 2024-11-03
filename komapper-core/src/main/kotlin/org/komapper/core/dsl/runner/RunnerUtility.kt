@@ -1,12 +1,15 @@
 package org.komapper.core.dsl.runner
 
 import org.komapper.core.DatabaseConfig
+import org.komapper.core.EntityNotFoundException
 import org.komapper.core.OptimisticLockException
 import org.komapper.core.dsl.builder.getWhereCriteria
 import org.komapper.core.dsl.context.WhereProvider
+import org.komapper.core.dsl.expression.WhereDeclaration
 import org.komapper.core.dsl.metamodel.EntityMetamodel
 import org.komapper.core.dsl.metamodel.hasAutoIncrementProperty
 import org.komapper.core.dsl.options.InsertOptions
+import org.komapper.core.dsl.options.MutationOptions
 import org.komapper.core.dsl.options.OptimisticLockOptions
 
 fun checkWhereClause(whereProvider: WhereProvider) {
@@ -18,6 +21,24 @@ fun checkWhereClause(whereProvider: WhereProvider) {
     }
 }
 
+fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> checkEntityExistence(
+    option: MutationOptions,
+    metamodel: META,
+    entity: ENTITY,
+    count: Long,
+    index: Int?,
+) {
+    if (!option.suppressEntityNotFoundException) {
+        if (count != 1L) {
+            throw EntityNotFoundException(
+                "The specified entity does not exist. " +
+                    "entity=${metamodel.toText(entity)}, count=$count, index=$index."
+            )
+        }
+    }
+}
+
+@Deprecated("Use another overload.", replaceWith = ReplaceWith("checkOptimisticLock(option, metamodel, entity, count, index)"))
 fun checkOptimisticLock(
     option: OptimisticLockOptions,
     count: Long,
@@ -31,6 +52,23 @@ fun checkOptimisticLock(
                 "index=$index, count=$count"
             }
             throw OptimisticLockException(message)
+        }
+    }
+}
+
+fun <ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>> checkOptimisticLock(
+    option: OptimisticLockOptions,
+    metamodel: META,
+    entity: ENTITY,
+    count: Long,
+    index: Int?,
+) {
+    if (!option.disableOptimisticLock && !option.suppressOptimisticLockException) {
+        if (count != 1L) {
+            throw OptimisticLockException(
+                "Optimistic lock failed. " +
+                    "entity=${metamodel.toText(entity)}, count=$count, index=$index."
+            )
         }
     }
 }
@@ -51,6 +89,15 @@ internal fun checkConflictTargetInUpsertStatement(config: DatabaseConfig, confli
     if (!config.dialect.supportsConflictTargetInUpsertStatement() && conflictTarget != null) {
         throw UnsupportedOperationException(
             "The dialect(driver=${dialect.driver}) does not support specifying a conflict target in upsert statements.",
+        )
+    }
+}
+
+internal fun checkIndexPredicateInUpsertStatement(config: DatabaseConfig, indexPredicate: WhereDeclaration?) {
+    val dialect = config.dialect
+    if (!config.dialect.supportsIndexPredicateInUpsertStatement() && indexPredicate != null) {
+        throw UnsupportedOperationException(
+            "The dialect(driver=${dialect.driver}) does not support specifying a index predicate in upsert statements.",
         )
     }
 }

@@ -1,6 +1,8 @@
 package org.komapper.jdbc.dsl.runner
 
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import org.komapper.core.DatabaseConfig
 import org.komapper.core.DryRunStatement
 import org.komapper.core.dsl.context.EntityDeleteContext
@@ -12,7 +14,7 @@ import java.sql.ResultSet
 
 internal class JdbcEntityDeleteSingleReturningRunner<ENTITY : Any, ID : Any, META : EntityMetamodel<ENTITY, ID, META>, T>(
     context: EntityDeleteContext<ENTITY, ID, META>,
-    entity: ENTITY,
+    private val entity: ENTITY,
     private val transform: (JdbcDataOperator, ResultSet) -> T,
 ) : JdbcRunner<T?> {
     private val runner: EntityDeleteSingleReturningRunner<ENTITY, ID, META> =
@@ -27,20 +29,21 @@ internal class JdbcEntityDeleteSingleReturningRunner<ENTITY : Any, ID : Any, MET
 
     override fun run(config: JdbcDatabaseConfig): T? {
         val result = delete(config)
-        val count = if (result == null) 0L else 1L
-        postDelete(count)
-        return result
+        postDelete(entity, result.size.toLong())
+        return result.singleOrNull()
     }
 
-    private fun delete(config: JdbcDatabaseConfig): T? {
+    private fun delete(config: JdbcDatabaseConfig): List<T?> {
         val statement = runner.buildStatement(config)
         return support.delete(config) { executor ->
-            executor.executeReturning(statement, transform) { it.singleOrNull() }
+            executor.executeReturning(statement, transform) { flow ->
+                flow.take(1).toList()
+            }
         }
     }
 
-    private fun postDelete(count: Long) {
-        runner.postDelete(count)
+    private fun postDelete(entity: ENTITY, count: Long) {
+        runner.postDelete(entity, count)
     }
 
     override fun dryRun(config: DatabaseConfig): DryRunStatement {

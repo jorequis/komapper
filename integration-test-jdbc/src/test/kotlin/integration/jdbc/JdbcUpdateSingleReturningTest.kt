@@ -2,9 +2,14 @@ package integration.jdbc
 
 import integration.core.Address
 import integration.core.Dbms
+import integration.core.Person
 import integration.core.Run
+import integration.core.Site
 import integration.core.address
+import integration.core.person
+import integration.core.site
 import org.junit.jupiter.api.extension.ExtendWith
+import org.komapper.core.EntityNotFoundException
 import org.komapper.core.OptimisticLockException
 import org.komapper.core.UniqueConstraintException
 import org.komapper.core.dryRunQuery
@@ -103,6 +108,26 @@ class JdbcUpdateSingleReturningTest(private val db: JdbcDatabase) {
 
     @Run(onlyIf = [Dbms.ORACLE, Dbms.POSTGRESQL, Dbms.SQLSERVER])
     @Test
+    fun testReturningSingleColumn_null() {
+        val s = Meta.site
+        val query = QueryDsl.from(s).where { s.id eq 15 }
+        val site = db.runQuery { query.first() }
+        val newSite = site.copy(street = null)
+        val street = db.runQuery { QueryDsl.update(s).single(newSite).returning(s.street) }
+        val site2 = db.runQuery { query.firstOrNull() }
+        assertNull(street)
+        assertEquals(
+            Site(
+                15,
+                null,
+                2,
+            ),
+            site2,
+        )
+    }
+
+    @Run(onlyIf = [Dbms.ORACLE, Dbms.POSTGRESQL, Dbms.SQLSERVER])
+    @Test
     fun suppressOptimisticLockException() {
         val a = Meta.address
         val query = QueryDsl.from(a).where { a.addressId eq 15 }
@@ -153,5 +178,30 @@ class JdbcUpdateSingleReturningTest(private val db: JdbcDatabase) {
         val address = Address(addressId = 1, street = "STREET 123", version = 0)
         val query = QueryDsl.update(a).single(address).returning()
         println(db.dryRunQuery(query))
+    }
+
+    @Run(onlyIf = [Dbms.ORACLE, Dbms.POSTGRESQL, Dbms.SQLSERVER])
+    @Test
+    fun throwEntityNotFoundException() {
+        val p = Meta.person
+        val person = Person(1, "aaa")
+        val ex = assertFailsWith<EntityNotFoundException> {
+            db.runQuery { QueryDsl.update(p).single(person).returning() }
+            Unit
+        }
+        println(ex)
+    }
+
+    @Run(onlyIf = [Dbms.ORACLE, Dbms.POSTGRESQL, Dbms.SQLSERVER])
+    @Test
+    fun suppressEntityNotFoundException() {
+        val p = Meta.person
+        val person = Person(1, "aaa")
+        val result = db.runQuery {
+            QueryDsl.update(p).single(person).returning().options {
+                it.copy(suppressEntityNotFoundException = true)
+            }
+        }
+        assertNull(result)
     }
 }

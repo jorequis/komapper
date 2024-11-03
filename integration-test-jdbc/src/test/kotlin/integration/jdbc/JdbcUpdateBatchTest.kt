@@ -9,8 +9,8 @@ import integration.core.department
 import integration.core.idColumnOnlyAddress
 import integration.core.man
 import integration.core.person
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.komapper.core.EntityNotFoundException
 import org.komapper.core.OptimisticLockException
 import org.komapper.core.UniqueConstraintException
 import org.komapper.core.dsl.Meta
@@ -150,7 +150,7 @@ class JdbcUpdateBatchTest(private val db: JdbcDatabase) {
                 )
             }.let { }
         }
-        assertEquals("index=2, count=0", ex.message)
+        assertEquals("Optimistic lock failed. entity=Address(addressId=3, street=C, version=2), count=0, index=2.", ex.message)
     }
 
     @Test
@@ -202,7 +202,7 @@ class JdbcUpdateBatchTest(private val db: JdbcDatabase) {
         val a = Meta.idColumnOnlyAddress
         val query = QueryDsl.from(a)
         val address: List<IdColumnOnlyAddress> = db.runQuery { query }
-        val ex = assertThrows<IllegalArgumentException> {
+        val ex = assertFailsWith<IllegalArgumentException> {
             val updateQuery = QueryDsl.update(a).batch(address)
             db.runQuery { updateQuery }.run { }
         }
@@ -230,6 +230,54 @@ class JdbcUpdateBatchTest(private val db: JdbcDatabase) {
         for (person in afterUpdate) {
             assertEquals("nobody", person.createdBy)
             assertEquals("somebody", person.updatedBy)
+        }
+    }
+
+    @Test
+    fun throwEntityNotFoundException() {
+        val p = Meta.person
+        val people = listOf(
+            Person(1, "aaa"),
+            Person(2, "bbb"),
+            Person(3, "ccc")
+        )
+        val ex = assertFailsWith<EntityNotFoundException> {
+            db.runQuery { QueryDsl.update(p).batch(people) }
+            Unit
+        }
+        println(ex)
+    }
+
+    @Test
+    fun throwEntityNotFoundException_at_index_2() {
+        val p = Meta.person
+        db.runQuery {
+            QueryDsl.insert(p).multiple(
+                Person(1, "aaa"),
+                Person(2, "bbb")
+            )
+        }
+        val people = db.runQuery { QueryDsl.from(p).orderBy(p.personId) }
+        assertEquals(2, people.size)
+        val ex = assertFailsWith<EntityNotFoundException> {
+            db.runQuery { QueryDsl.update(p).batch(people + listOf(Person(3, "ccc"))) }
+            Unit
+        }
+        println(ex)
+    }
+
+    @Test
+    fun suppressEntityNotFoundException() {
+        val p = Meta.person
+        val people = listOf(
+            Person(1, "aaa"),
+            Person(2, "bbb"),
+            Person(3, "ccc")
+        )
+        db.runQuery {
+            QueryDsl.update(p).batch(people).options {
+                it.copy(suppressEntityNotFoundException = true)
+            }
         }
     }
 }

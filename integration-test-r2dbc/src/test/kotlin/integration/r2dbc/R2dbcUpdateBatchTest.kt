@@ -11,6 +11,7 @@ import integration.core.man
 import integration.core.person
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.extension.ExtendWith
+import org.komapper.core.EntityNotFoundException
 import org.komapper.core.OptimisticLockException
 import org.komapper.core.UniqueConstraintException
 import org.komapper.core.dsl.Meta
@@ -121,7 +122,7 @@ class R2dbcUpdateBatchTest(private val db: R2dbcDatabase) {
                 )
             }.let { }
         }
-        assertEquals("index=2, count=0", ex.message)
+        assertEquals("Optimistic lock failed. entity=Address(addressId=3, street=C, version=2), count=0, index=2.", ex.message)
     }
 
     @Run(onlyIf = [Dbms.ORACLE, Dbms.SQLSERVER])
@@ -192,6 +193,57 @@ class R2dbcUpdateBatchTest(private val db: R2dbcDatabase) {
         for (person in afterUpdate) {
             assertEquals("nobody", person.createdBy)
             assertEquals("somebody", person.updatedBy)
+        }
+    }
+
+    @Run(onlyIf = [Dbms.ORACLE, Dbms.SQLSERVER])
+    @Test
+    fun throwEntityNotFoundException(info: TestInfo) = inTransaction(db, info) {
+        val p = Meta.person
+        val people = listOf(
+            Person(1, "aaa"),
+            Person(2, "bbb"),
+            Person(3, "ccc")
+        )
+        val ex = assertFailsWith<EntityNotFoundException> {
+            db.runQuery { QueryDsl.update(p).batch(people) }
+            Unit
+        }
+        println(ex)
+    }
+
+    @Run(onlyIf = [Dbms.ORACLE, Dbms.SQLSERVER])
+    @Test
+    fun throwEntityNotFoundException_at_index_2(info: TestInfo) = inTransaction(db, info) {
+        val p = Meta.person
+        db.runQuery {
+            QueryDsl.insert(p).multiple(
+                Person(1, "aaa"),
+                Person(2, "bbb")
+            )
+        }
+        val people = db.runQuery { QueryDsl.from(p).orderBy(p.personId) }
+        assertEquals(2, people.size)
+        val ex = assertFailsWith<EntityNotFoundException> {
+            db.runQuery { QueryDsl.update(p).batch(people + listOf(Person(3, "ccc"))) }
+            Unit
+        }
+        println(ex)
+    }
+
+    @Run(onlyIf = [Dbms.ORACLE, Dbms.SQLSERVER])
+    @Test
+    fun suppressEntityNotFoundException(info: TestInfo) = inTransaction(db, info) {
+        val p = Meta.person
+        val people = listOf(
+            Person(1, "aaa"),
+            Person(2, "bbb"),
+            Person(3, "ccc")
+        )
+        db.runQuery {
+            QueryDsl.update(p).batch(people).options {
+                it.copy(suppressEntityNotFoundException = true)
+            }
         }
     }
 }

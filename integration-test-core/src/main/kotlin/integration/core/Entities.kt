@@ -383,3 +383,34 @@ public data class DepartmentDto(
 
 @KomapperProjectionDef(DepartmentDto::class)
 public object DepartmentDtoDef
+
+@KomapperEntity
+@KomapperTable(name = "address")
+public data class Site(
+    @KomapperId
+    @KomapperColumn(name = "address_id")
+    val id: Int,
+    val street: String?,
+    @KomapperVersion val version: Int,
+)
+
+@KomapperEntity
+@KomapperTable(name = "address")
+public data class Spot(
+    @KomapperId
+    @KomapperColumn(name = "address_id")
+    val id: Int,
+    @KomapperColumn(masking = true)
+    val street: String?,
+    @KomapperVersion val version: Int,
+)
+
+@KomapperEntity
+@KomapperTable(name = "names")
+public data class Name(
+    @KomapperId
+    val id: Long,
+    val firstName: String?,
+    val lastName: String?,
+    val deletedAt: Instant?,
+)
